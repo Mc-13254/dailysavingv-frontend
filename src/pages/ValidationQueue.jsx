@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import DataTable from '../components/DataTable';
-import { CollectorAPI, ClientAPI, CommissionAPI } from '../api/endpoints';
+import { CollectorAPI, ClientAPI, CommissionAPI, AgencyAPI, AccountAPI, ContractAPI, IMFAPI, UserAPI } from '../api/endpoints';
 
 export default function ValidationQueue() {
   const [module, setModule] = useState('collectors');
@@ -11,18 +11,33 @@ export default function ValidationQueue() {
     collectors: () => CollectorAPI.pending(),
     clients: () => ClientAPI.pending(),
     commissionRanges: () => CommissionAPI.pendingRanges(),
+    agencies: () => AgencyAPI.pending(),
+    accounts: () => AccountAPI.pending(),
+    contracts: () => ContractAPI.pending(),
+    imf: () => IMFAPI.pending(),
+    users: () => UserAPI.pending(),
   };
 
   const approvers = {
     collectors: (id) => CollectorAPI.approve(id),
     clients: (id) => ClientAPI.approve(id),
     commissionRanges: (id) => CommissionAPI.approveRange(id),
+    agencies: (id) => AgencyAPI.approve(id),
+    accounts: (id) => AccountAPI.approve(id),
+    contracts: (id) => ContractAPI.approve(id),
+    imf: (id) => IMFAPI.approve(id),
+    users: (id) => UserAPI.approve(id),
   };
 
   const rejecters = {
     collectors: (id, reason) => CollectorAPI.reject(id, reason),
     clients: (id, reason) => ClientAPI.reject(id, reason),
     commissionRanges: (id, reason) => CommissionAPI.rejectRange(id, reason),
+    agencies: (id, reason) => AgencyAPI.reject(id, reason),
+    accounts: (id, reason) => AccountAPI.reject(id, reason),
+    contracts: (id, reason) => ContractAPI.reject(id, reason),
+    imf: (id, reason) => IMFAPI.reject(id, reason),
+    users: (id, reason) => UserAPI.reject(id, reason),
   };
 
   const load = async () => {
@@ -59,6 +74,12 @@ export default function ValidationQueue() {
     },
   ];
 
+  const MODULES = [
+    ['collectors', 'Collecteurs'], ['clients', 'Clients'], ['commissionRanges', 'Commission Ranges'],
+    ['agencies', 'Agences'], ['accounts', 'Comptes'], ['contracts', 'Contrats'],
+    ['imf', 'IMF'], ['users', 'Utilisateurs'],
+  ];
+
   return (
     <div className="panel">
       <div className="panel-header">
@@ -69,10 +90,10 @@ export default function ValidationQueue() {
       </div>
 
       <div className="toolbar">
-        <div className="toggle-group">
-          <button className={`toggle-btn${module === 'collectors' ? ' active' : ''}`} onClick={() => setModule('collectors')}>Collecteurs</button>
-          <button className={`toggle-btn${module === 'clients' ? ' active' : ''}`} onClick={() => setModule('clients')}>Clients</button>
-          <button className={`toggle-btn${module === 'commissionRanges' ? ' active' : ''}`} onClick={() => setModule('commissionRanges')}>Commission Ranges</button>
+        <div className="toggle-group" style={{ flexWrap: 'wrap' }}>
+          {MODULES.map(([key, label]) => (
+            <button key={key} className={`toggle-btn${module === key ? ' active' : ''}`} onClick={() => setModule(key)}>{label}</button>
+          ))}
         </div>
       </div>
 
@@ -80,3 +101,4 @@ export default function ValidationQueue() {
     </div>
   );
 }
+

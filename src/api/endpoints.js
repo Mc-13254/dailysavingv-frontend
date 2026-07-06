@@ -44,24 +44,39 @@ export const TransactionAPI = {
 export const AgencyAPI = {
   list: () => client.get('/api/agence'),
   create: (payload) => client.post('/api/agence', payload),
+  pending: () => client.get('/api/agence/pending'),
+  approve: (pendingId) => client.post(`/api/agence/pending/${pendingId}/approve`),
+  reject: (pendingId, reason) => client.post(`/api/agence/pending/${pendingId}/reject`, { reason }),
 };
 
 export const AccountAPI = {
   list: (search) => client.get('/api/accounts', { params: { search } }),
   create: (payload) => client.post('/api/accounts', payload),
+  pending: () => client.get('/api/accounts/pending'),
+  approve: (pendingId) => client.post(`/api/accounts/pending/${pendingId}/approve`),
+  reject: (pendingId, reason) => client.post(`/api/accounts/pending/${pendingId}/reject`, { reason }),
 };
 
 export const ContractAPI = {
   list: () => client.get('/api/contract'),
   create: (payload) => client.post('/api/contract', payload),
+  pending: () => client.get('/api/contract/pending'),
+  approve: (pendingId) => client.post(`/api/contract/pending/${pendingId}/approve`),
+  reject: (pendingId, reason) => client.post(`/api/contract/pending/${pendingId}/reject`, { reason }),
 };
 
 export const IMFAPI = {
   list: () => client.get('/api/imf'),
   create: (payload) => client.post('/api/imf', payload),
+  pending: () => client.get('/api/imf/pending'),
+  approve: (pendingId) => client.post(`/api/imf/pending/${pendingId}/approve`),
+  reject: (pendingId, reason) => client.post(`/api/imf/pending/${pendingId}/reject`, { reason }),
 };
 
 export const UserAPI = {
   list: () => client.get('/api/users'),
   create: (payload) => client.post('/api/users', payload),
+  pending: () => client.get('/api/users/pending'),
+  approve: (pendingId) => client.post(`/api/users/pending/${pendingId}/approve`),
+  reject: (pendingId, reason) => client.post(`/api/users/pending/${pendingId}/reject`, { reason }),
 };
