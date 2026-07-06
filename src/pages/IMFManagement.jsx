@@ -6,15 +6,11 @@ import StatusBadge from '../components/StatusBadge';
 import ExportDropdown from '../components/ExportDropdown';
 import { IMFAPI, GeoAPI } from '../api/endpoints';
 
-const CURRENCIES = ['XAF', 'XOF', 'USD', 'EUR', 'GBP'];
-const LANGUAGES = [{ code: 'fr', label: 'Français' }, { code: 'en', label: 'English' }];
-const TIMEZONES = ['Africa/Douala', 'Africa/Abidjan', 'Europe/Paris', 'UTC'];
-
 const emptyForm = {
   codeIMF: '', libelle: '', shortName: '', registrationNumber: '', taxNumber: '', description: '', logoBase64: '',
   primaryPhone: '', secondaryPhone: '', email: '', website: '',
   paysID: '', villeID: '', address: '', postalCode: '',
-  currencyCode: 'XAF', language: 'fr', timezone: 'Africa/Douala',
+  currencyCode: '', language: '', timezone: '',
   tauxTaxe: 0, assujettiTaxe: false, suffixeCompte: '', prefixeCompte: '', tailleCompte: 10, calculCommission: true,
   statut: 'ACTIVE',
 };
@@ -28,6 +24,9 @@ export default function IMFManagement() {
   const [form, setForm] = useState(emptyForm);
   const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);
+  const [currencies, setCurrencies] = useState([]);
+  const [languages, setLanguages] = useState([]);
+  const [timezones, setTimezones] = useState([]);
   const [hasActive, setHasActive] = useState(false);
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
@@ -42,7 +41,12 @@ export default function IMFManagement() {
     finally { setLoading(false); }
   };
   useEffect(() => { load(); }, []);
-  useEffect(() => { GeoAPI.countries().then(({ data }) => setCountries(data)).catch(() => {}); }, []);
+  useEffect(() => {
+    GeoAPI.countries().then(({ data }) => setCountries(data)).catch(() => {});
+    GeoAPI.currencies().then(({ data }) => setCurrencies(data)).catch(() => {});
+    GeoAPI.languages().then(({ data }) => setLanguages(data)).catch(() => {});
+    GeoAPI.timezones().then(({ data }) => setTimezones(data)).catch(() => {});
+  }, []);
   useEffect(() => {
     if (form.paysID) GeoAPI.cities(form.paysID).then(({ data }) => setCities(data)).catch(() => {});
     else setCities([]);
@@ -69,7 +73,7 @@ export default function IMFManagement() {
       primaryPhone: row.primaryPhone || '', secondaryPhone: row.secondaryPhone || '',
       email: row.email || '', website: row.website || '',
       paysID: row.paysID || '', villeID: row.villeID || '', address: row.address || '', postalCode: row.postalCode || '',
-      currencyCode: row.currencyCode || 'XAF', language: row.language || 'fr', timezone: row.timezone || 'Africa/Douala',
+      currencyCode: row.currencyCode || '', language: row.language || '', timezone: row.timezone || '',
       tauxTaxe: row.tauxTaxe, assujettiTaxe: row.assujettiTaxe, suffixeCompte: row.suffixeCompte || '',
       prefixeCompte: row.prefixeCompte || '', tailleCompte: row.tailleCompte, calculCommission: row.calculCommission,
       statut: row.statut, createdBy: row.createdBy, dateCreation: row.dateCreation,
@@ -156,6 +160,7 @@ export default function IMFManagement() {
 
       {mode && (
         <Modal
+          wide
           title={mode === 'create' ? 'Create IMF' : mode === 'edit' ? 'Edit IMF' : 'View IMF'}
           onClose={close}
           footer={
@@ -172,40 +177,37 @@ export default function IMFManagement() {
           {error && <div className="error-banner">{error}</div>}
           <form id="imf-form" onSubmit={handleSubmit} style={{ display: 'contents' }}>
 
-            <div className="text-xs font-bold text-brand-blue uppercase mt-1">General Information</div>
-            <div className="form-row">
+            <div className="form-section-title">General Information</div>
+            <div className="form-row-3">
               <div className="form-group"><label>IMF Code *</label><input required disabled={mode !== 'create'} value={form.codeIMF} onChange={(e) => setForm({ ...form, codeIMF: e.target.value })} placeholder="IMF001" /></div>
               <div className="form-group"><label>IMF Name *</label><input required disabled={readOnly} value={form.libelle} onChange={(e) => setForm({ ...form, libelle: e.target.value })} /></div>
-            </div>
-            <div className="form-row">
               <div className="form-group"><label>Short Name</label><input disabled={readOnly} value={form.shortName} onChange={(e) => setForm({ ...form, shortName: e.target.value })} /></div>
+            </div>
+            <div className="form-row-3">
               <div className="form-group"><label>Registration Number</label><input disabled={mode !== 'create'} value={form.registrationNumber} onChange={(e) => setForm({ ...form, registrationNumber: e.target.value })} /></div>
+              <div className="form-group"><label>Tax Number</label><input disabled={readOnly} value={form.taxNumber} onChange={(e) => setForm({ ...form, taxNumber: e.target.value })} /></div>
+              <div className="form-group">
+                <label>Logo</label>
+                {!readOnly ? (
+                  <label className="flex items-center gap-2 border border-dashed border-gray-300 rounded px-2.5 py-2 text-xs cursor-pointer">
+                    <Upload size={14} /> {form.logoBase64 ? 'Changer' : 'Upload'}
+                    <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                  </label>
+                ) : form.logoBase64 ? <img src={form.logoBase64} alt="Logo" className="h-9 rounded border" /> : <span className="text-xs text-gray-400">—</span>}
+              </div>
             </div>
-            <div className="form-group"><label>Tax Number</label><input disabled={readOnly} value={form.taxNumber} onChange={(e) => setForm({ ...form, taxNumber: e.target.value })} /></div>
             <div className="form-group"><label>Description</label><textarea rows={2} disabled={readOnly} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
-            <div className="form-group">
-              <label>Logo</label>
-              {!readOnly && (
-                <label className="flex items-center gap-2 border border-dashed border-gray-300 rounded px-3 py-2 text-xs cursor-pointer w-fit">
-                  <Upload size={14} /> Upload logo
-                  <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-                </label>
-              )}
-              {form.logoBase64 && <img src={form.logoBase64} alt="Logo" className="h-14 mt-2 rounded border" />}
-            </div>
 
-            <div className="text-xs font-bold text-brand-blue uppercase mt-2">Contact Information</div>
-            <div className="form-row">
+            <div className="form-section-title">Contact Information</div>
+            <div className="form-row-3">
               <div className="form-group"><label>Primary Phone *</label><input required disabled={readOnly} value={form.primaryPhone} onChange={(e) => setForm({ ...form, primaryPhone: e.target.value })} /></div>
               <div className="form-group"><label>Secondary Phone</label><input disabled={readOnly} value={form.secondaryPhone} onChange={(e) => setForm({ ...form, secondaryPhone: e.target.value })} /></div>
-            </div>
-            <div className="form-row">
               <div className="form-group"><label>Email</label><input type="email" disabled={readOnly} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-              <div className="form-group"><label>Website</label><input disabled={readOnly} value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} /></div>
             </div>
+            <div className="form-group"><label>Website</label><input disabled={readOnly} value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} /></div>
 
-            <div className="text-xs font-bold text-brand-blue uppercase mt-2">Location</div>
-            <div className="form-row">
+            <div className="form-section-title">Location</div>
+            <div className="form-row-3">
               <div className="form-group">
                 <label>Country</label>
                 <select disabled={readOnly} value={form.paysID} onChange={(e) => setForm({ ...form, paysID: e.target.value, villeID: '' })}>
@@ -220,63 +222,54 @@ export default function IMFManagement() {
                   {cities.map((c) => <option key={c.villeID} value={c.villeID}>{c.nom}</option>)}
                 </select>
               </div>
-            </div>
-            <div className="form-row">
-              <div className="form-group"><label>Address</label><input disabled={readOnly} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
               <div className="form-group"><label>Postal Code</label><input disabled={readOnly} value={form.postalCode} onChange={(e) => setForm({ ...form, postalCode: e.target.value })} /></div>
             </div>
+            <div className="form-group"><label>Address</label><input disabled={readOnly} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
 
-            <div className="text-xs font-bold text-brand-blue uppercase mt-2">Business Settings</div>
-            <div className="form-row">
+            <div className="form-section-title">Business Settings</div>
+            <div className="form-row-3">
               <div className="form-group">
                 <label>Default Currency *</label>
                 <select disabled={readOnly} value={form.currencyCode} onChange={(e) => setForm({ ...form, currencyCode: e.target.value })}>
-                  {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  <option value="">—</option>
+                  {currencies.map((c) => <option key={c.currencyCode} value={c.currencyCode}>{c.currencyCode} — {c.nom}</option>)}
                 </select>
               </div>
               <div className="form-group">
                 <label>Language *</label>
                 <select disabled={readOnly} value={form.language} onChange={(e) => setForm({ ...form, language: e.target.value })}>
-                  {LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
+                  <option value="">—</option>
+                  {languages.map((l) => <option key={l.languageCode} value={l.languageCode}>{l.nom}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Timezone *</label>
+                <select disabled={readOnly} value={form.timezone} onChange={(e) => setForm({ ...form, timezone: e.target.value })}>
+                  <option value="">—</option>
+                  {timezones.map((tz) => <option key={tz.timeZoneID} value={tz.code}>{tz.label} ({tz.utcOffset})</option>)}
                 </select>
               </div>
             </div>
-            <div className="form-group">
-              <label>Timezone *</label>
-              <select disabled={readOnly} value={form.timezone} onChange={(e) => setForm({ ...form, timezone: e.target.value })}>
-                {TIMEZONES.map((tz) => <option key={tz} value={tz}>{tz}</option>)}
-              </select>
-            </div>
-            <div className="form-row">
+            <div className="form-row-3">
               <div className="form-group"><label>Préfixe Compte</label><input disabled={readOnly} value={form.prefixeCompte} onChange={(e) => setForm({ ...form, prefixeCompte: e.target.value })} /></div>
               <div className="form-group"><label>Suffixe Compte</label><input disabled={readOnly} value={form.suffixeCompte} onChange={(e) => setForm({ ...form, suffixeCompte: e.target.value })} /></div>
-            </div>
-            <div className="form-row">
               <div className="form-group"><label>Taille Compte</label><input type="number" disabled={readOnly} value={form.tailleCompte} onChange={(e) => setForm({ ...form, tailleCompte: Number(e.target.value) })} /></div>
-              <div className="form-group"><label>Taux Taxe (%)</label><input type="number" step="0.01" disabled={readOnly} value={form.tauxTaxe} onChange={(e) => setForm({ ...form, tauxTaxe: Number(e.target.value) })} /></div>
             </div>
-
-            {mode === 'edit' && (
-              <>
-                <div className="text-xs font-bold text-brand-blue uppercase mt-2">Status</div>
+            <div className="form-row-3">
+              <div className="form-group"><label>Taux Taxe (%)</label><input type="number" step="0.01" disabled={readOnly} value={form.tauxTaxe} onChange={(e) => setForm({ ...form, tauxTaxe: Number(e.target.value) })} /></div>
+              {mode === 'edit' && (
                 <div className="form-group">
+                  <label>Status</label>
                   <select value={form.statut} onChange={(e) => setForm({ ...form, statut: e.target.value })}>
                     <option value="ACTIVE">Active</option>
                     <option value="INACTIF">Inactive</option>
                   </select>
                 </div>
-              </>
-            )}
-
-            {mode !== 'create' && (
-              <>
-                <div className="text-xs font-bold text-brand-blue uppercase mt-2">Audit Information</div>
-                <div className="form-row">
-                  <div className="form-group"><label>Created By</label><input disabled value={form.createdBy || ''} /></div>
-                  <div className="form-group"><label>Created Date</label><input disabled value={form.dateCreation ? new Date(form.dateCreation).toLocaleString('fr-FR') : ''} /></div>
-                </div>
-              </>
-            )}
+              )}
+              {mode !== 'create' && (
+                <div className="form-group"><label>Created By / Date</label><input disabled value={`${form.createdBy || ''} — ${form.dateCreation ? new Date(form.dateCreation).toLocaleDateString('fr-FR') : ''}`} /></div>
+              )}
+            </div>
           </form>
         </Modal>
       )}

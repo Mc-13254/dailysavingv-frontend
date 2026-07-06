@@ -73,6 +73,8 @@ table.data-table { @apply table-auto min-w-full w-full border-collapse text-left
   @apply border border-gray-300 rounded px-2.5 py-2 text-xs normal-case;
 }
 .form-row { @apply grid grid-cols-1 sm:grid-cols-2 gap-3; }
+.form-row-3 { @apply grid grid-cols-1 sm:grid-cols-3 gap-3; }
+.form-section-title { @apply text-xs font-bold text-brand-blue uppercase mt-3 mb-1 pb-1 border-b border-gray-100; }
 
 /* ---------- Login screen ---------- */
 .login-screen { @apply min-h-screen flex items-center justify-center normal-case; background: radial-gradient(circle at top left, #1E90FF, #0b1c3d 65%); }

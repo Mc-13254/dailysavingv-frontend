@@ -96,6 +96,9 @@ export const IMFAPI = {
 export const GeoAPI = {
   countries: () => client.get('/api/geo/countries'),
   cities: (paysId) => client.get('/api/geo/cities', { params: { paysId } }),
+  currencies: () => client.get('/api/geo/currencies'),
+  languages: () => client.get('/api/geo/languages'),
+  timezones: () => client.get('/api/geo/timezones'),
 };
 
 export const UserAPI = {
