@@ -19,6 +19,7 @@ export function AuthProvider({ children }) {
       roleCode: data.roleCode,
       agenceID: data.agenceID,
       agenceNom: data.agenceNom,
+      agenceCode: data.agenceCode,
     };
     localStorage.setItem('dsv_user', JSON.stringify(userInfo));
     setUser(userInfo);

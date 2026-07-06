@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 import StatusBadge from '../components/StatusBadge';
+import ExportDropdown from '../components/ExportDropdown';
 import { CollectorAPI } from '../api/endpoints';
 
 const emptyForm = {
@@ -109,7 +110,16 @@ export default function CollectorManagement() {
       </div>
 
       {tab === 'validated' ? (
-        <DataTable columns={validatedColumns} rows={rows} loading={loading} totalLabel={`TOTAL COLLECTORS: ${rows.length}`} />
+        <>
+          <div className="flex justify-end mb-2">
+            <ExportDropdown
+              filename="COLLECTORS"
+              columns={validatedColumns.filter((c) => c.key !== 'isActive').concat([{ key: 'isActive', label: 'IsActive', format: (r) => (r.isActive ? 'ACTIVE' : 'INACTIVE') }])}
+              rows={rows}
+            />
+          </div>
+          <DataTable columns={validatedColumns} rows={rows} loading={loading} totalLabel={`TOTAL COLLECTORS: ${rows.length}`} />
+        </>
       ) : (
         <DataTable columns={pendingColumns} rows={pendingRows} loading={loading} totalLabel={`EN ATTENTE: ${pendingRows.length}`} />
       )}
