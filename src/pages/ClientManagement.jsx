@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
+import { Pencil, Trash2 } from 'lucide-react';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 import StatusBadge from '../components/StatusBadge';
+import ExportDropdown from '../components/ExportDropdown';
 import { ClientAPI } from '../api/endpoints';
 
 const emptyForm = { nom: '', prenom: '', sexe: '', phoneNumber: '', address: '', email: '', companyName: '', clientType: 'INDIVIDUAL', numeroCNI: '' };
@@ -13,8 +15,10 @@ export default function ClientManagement() {
   const [pendingRows, setPendingRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
+  const [notice, setNotice] = useState('');
 
   const loadAll = async () => {
     setLoading(true);
@@ -30,15 +34,39 @@ export default function ClientManagement() {
 
   useEffect(() => { loadAll(); }, [search]);
 
-  const handleCreate = async (e) => {
+  const openCreate = () => { setEditing(null); setForm(emptyForm); setShowModal(true); };
+  const openEdit = (row) => {
+    setEditing(row);
+    setForm({
+      nom: row.nom, prenom: row.prenom || '', sexe: '', phoneNumber: row.phoneNumber || '',
+      address: '', email: row.email || '', companyName: '', clientType: row.clientType || 'INDIVIDUAL', numeroCNI: '',
+    });
+    setShowModal(true);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await ClientAPI.create(form);
+      if (editing) {
+        await ClientAPI.update(editing.clientID, form);
+        setNotice('Modification soumise pour validation.');
+      } else {
+        await ClientAPI.create(form);
+        setNotice('Client soumis pour validation.');
+      }
       setShowModal(false);
       setForm(emptyForm);
+      setEditing(null);
       loadAll();
     } finally { setSubmitting(false); }
+  };
+
+  const handleDelete = async (row) => {
+    if (!window.confirm(`Bloquer le client ${row.clientID} ? (soumis pour validation)`)) return;
+    await ClientAPI.remove(row.clientID);
+    setNotice('Suppression soumise pour validation.');
+    loadAll();
   };
 
   const handleApprove = async (id) => { await ClientAPI.approve(id); loadAll(); };
@@ -56,6 +84,14 @@ export default function ClientManagement() {
     { key: 'email', label: 'Email' },
     { key: 'clientType', label: 'ClientType' },
     { key: 'validationStatus', label: 'ClientStatus', render: (r) => <StatusBadge status={r.validationStatus} /> },
+    {
+      key: 'actions', label: 'Actions', sortable: false, render: (r) => (
+        <div className="flex items-center gap-2">
+          <button className="btn-icon" title="Modifier" onClick={() => openEdit(r)}><Pencil size={15} /></button>
+          <button className="btn-icon text-red-500" title="Supprimer" onClick={() => handleDelete(r)}><Trash2 size={15} /></button>
+        </div>
+      )
+    },
   ];
 
   const pendingColumns = [
@@ -65,8 +101,8 @@ export default function ClientManagement() {
     { key: 'requestUser', label: 'Demandé par' },
     { key: 'requestDate', label: 'Date', render: (r) => new Date(r.requestDate).toLocaleString('fr-FR') },
     {
-      key: 'actions', label: 'Actions', render: (r) => (
-        <div style={{ display: 'flex', gap: 6 }}>
+      key: 'actions', label: 'Actions', sortable: false, render: (r) => (
+        <div className="flex items-center gap-2">
           <button className="btn btn-primary btn-sm" onClick={() => handleApprove(r.pendingID)}>Valider</button>
           <button className="btn btn-danger btn-sm" onClick={() => handleReject(r.pendingID)}>Rejeter</button>
         </div>
@@ -78,8 +114,10 @@ export default function ClientManagement() {
     <div className="panel">
       <div className="panel-header">
         <div className="panel-title">Client Management</div>
-        <button className="btn btn-primary" onClick={() => setShowModal(true)}>+ Add Client</button>
+        <button className="btn btn-primary" onClick={openCreate}>+ Add Client</button>
       </div>
+
+      {notice && <div className="error-banner" style={{ background: '#dcfce7', color: '#16a34a' }}>{notice}</div>}
 
       <div className="toolbar">
         <input className="search-input" placeholder="Search clients…" value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -87,7 +125,9 @@ export default function ClientManagement() {
           <button className={`toggle-btn${tab === 'validated' ? ' active' : ''}`} onClick={() => setTab('validated')}>Validated</button>
           <button className={`toggle-btn${tab === 'pending' ? ' active' : ''}`} onClick={() => setTab('pending')}>Pending</button>
         </div>
-        <button className="btn btn-outline">⬇ Export</button>
+        {tab === 'validated' && (
+          <ExportDropdown filename="CLIENTS" columns={validatedColumns.filter((c) => c.key !== 'actions')} rows={rows} />
+        )}
       </div>
 
       {tab === 'validated' ? (
@@ -97,7 +137,7 @@ export default function ClientManagement() {
       )}
 
       {showModal && (
-        <Modal title="Add Client" onClose={() => setShowModal(false)} footer={
+        <Modal title={editing ? 'Edit Client' : 'Add Client'} onClose={() => setShowModal(false)} footer={
           <>
             <button className="btn btn-outline" onClick={() => setShowModal(false)}>Annuler</button>
             <button className="btn btn-primary" form="client-form" type="submit" disabled={submitting}>
@@ -105,7 +145,7 @@ export default function ClientManagement() {
             </button>
           </>
         }>
-          <form id="client-form" onSubmit={handleCreate} style={{ display: 'contents' }}>
+          <form id="client-form" onSubmit={handleSubmit} style={{ display: 'contents' }}>
             <div className="form-row">
               <div className="form-group"><label>Nom</label><input required value={form.nom} onChange={(e) => setForm({ ...form, nom: e.target.value })} /></div>
               <div className="form-group"><label>Prénom</label><input value={form.prenom} onChange={(e) => setForm({ ...form, prenom: e.target.value })} /></div>

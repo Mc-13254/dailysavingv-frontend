@@ -92,10 +92,19 @@ function SidebarItem({ group }) {
 
 function NavPill({ icon, children }) {
   return (
-    <span className="flex items-center gap-1.5 bg-brand-blue text-white text-[11px] font-semibold px-3 py-1.5 rounded-md whitespace-nowrap">
+    <span className="flex items-center gap-1.5 text-white text-[11px] font-semibold whitespace-nowrap">
       {icon}
       {children}
     </span>
+  );
+}
+
+function Avatar({ name }) {
+  const initials = (name || '?').slice(0, 2).toUpperCase();
+  return (
+    <div className="w-8 h-8 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-white text-[11px] font-bold">
+      {initials}
+    </div>
   );
 }
 
@@ -141,25 +150,28 @@ export default function Layout() {
 
       {/* Main area */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-14 bg-white border-b border-gray-200 flex items-center gap-2 px-5 flex-wrap">
+        <header className="h-14 bg-brand-blue flex items-center gap-5 px-5 flex-wrap shadow-sm">
           <NavPill icon={<User size={13} />}>{user?.codeUser}</NavPill>
           <NavPill icon={<Building2 size={13} />}>{user?.agenceNom || 'SIÈGE'}</NavPill>
           <NavPill icon={<Home size={13} />}>{user?.agenceCode || '—'}</NavPill>
           <NavPill icon={<BadgeCheck size={13} />}>RÔLE: {user?.roleCode}</NavPill>
 
-          <span className="flex items-center gap-1.5 text-gray-400 text-[11px] italic ml-2">
+          <span className="flex items-center gap-1.5 text-white/80 text-[11px] italic">
             <Clock size={13} />
             {dateStr} {timeStr}
           </span>
 
-          <div className="ml-auto flex items-center gap-3">
-            <button className="text-gray-400 hover:text-gray-700" title="Paramètres">
+          <div className="ml-auto flex items-center gap-4">
+            <button className="text-white/80 hover:text-white" title="Paramètres">
               <Settings size={18} />
             </button>
-            <button className="text-gray-400 hover:text-gray-700" title="Langue">
+            <button className="text-white/80 hover:text-white" title="Langue">
               <Flag size={18} />
             </button>
-            <button className="btn btn-outline btn-sm normal-case" onClick={handleLogout}>Déconnexion</button>
+            <button className="bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded border border-white/30" onClick={handleLogout}>
+              Déconnexion
+            </button>
+            <Avatar name={user?.username} />
           </div>
         </header>
 
