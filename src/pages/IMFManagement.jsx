@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Eye, Pencil, Trash2, Upload } from 'lucide-react';
+import { Eye, Pencil, Trash2, Upload, Building2, Phone, MapPin, Settings2, BadgeCheck, ImageIcon } from 'lucide-react';
 import DataTable from '../components/DataTable';
-import Modal from '../components/Modal';
+import WideModal from '../components/WideModal';
 import StatusBadge from '../components/StatusBadge';
 import ExportDropdown from '../components/ExportDropdown';
+import SearchableSelect from '../components/SearchableSelect';
 import { IMFAPI, GeoAPI } from '../api/endpoints';
 
 const emptyForm = {
@@ -51,6 +52,12 @@ export default function IMFManagement() {
     if (form.paysID) GeoAPI.cities(form.paysID).then(({ data }) => setCities(data)).catch(() => {});
     else setCities([]);
   }, [form.paysID]);
+
+  const countryOptions = countries.map((c) => ({ value: c.paysID, label: c.nom }));
+  const cityOptions = cities.map((c) => ({ value: c.villeID, label: c.nom }));
+  const currencyOptions = currencies.map((c) => ({ value: c.currencyCode, label: `${c.currencyCode} — ${c.nom}` }));
+  const languageOptions = languages.map((l) => ({ value: l.languageCode, label: l.nom }));
+  const timezoneOptions = timezones.map((tz) => ({ value: tz.code, label: `${tz.label} (${tz.utcOffset})` }));
 
   // Dynamic search: Code, Name, Phone, Email, City — filters as you type, no button
   const filtered = rows.filter((r) => {
@@ -102,7 +109,7 @@ export default function IMFManagement() {
       close();
       load();
     } catch (err) {
-      setError(err.response?.data?.message || "Erreur lors de l'enregistrement.");
+      setError(err.response?.data?.message || err.message || "Erreur lors de l'enregistrement.");
     }
   };
 
@@ -159,8 +166,7 @@ export default function IMFManagement() {
       <DataTable columns={columns} rows={filtered} loading={loading} totalLabel={`TOTAL IMF: ${filtered.length}`} />
 
       {mode && (
-        <Modal
-          wide
+        <WideModal
           title={mode === 'create' ? 'Create IMF' : mode === 'edit' ? 'Edit IMF' : 'View IMF'}
           onClose={close}
           footer={
@@ -174,104 +180,126 @@ export default function IMFManagement() {
               )
           }
         >
-          {error && <div className="error-banner">{error}</div>}
-          <form id="imf-form" onSubmit={handleSubmit} style={{ display: 'contents' }}>
+          {error && <div className="error-banner mb-3">{error}</div>}
+          <form id="imf-form" onSubmit={handleSubmit}>
+            {/* Dashboard-style grid of cards: 3 columns on large screens so everything fits without scrolling */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5 items-start">
 
-            <div className="form-section-title">General Information</div>
-            <div className="form-row-3">
-              <div className="form-group"><label>IMF Code *</label><input required disabled={mode !== 'create'} value={form.codeIMF} onChange={(e) => setForm({ ...form, codeIMF: e.target.value })} placeholder="IMF001" /></div>
-              <div className="form-group"><label>IMF Name *</label><input required disabled={readOnly} value={form.libelle} onChange={(e) => setForm({ ...form, libelle: e.target.value })} /></div>
-              <div className="form-group"><label>Short Name</label><input disabled={readOnly} value={form.shortName} onChange={(e) => setForm({ ...form, shortName: e.target.value })} /></div>
-            </div>
-            <div className="form-row-3">
-              <div className="form-group"><label>Registration Number</label><input disabled={mode !== 'create'} value={form.registrationNumber} onChange={(e) => setForm({ ...form, registrationNumber: e.target.value })} /></div>
-              <div className="form-group"><label>Tax Number</label><input disabled={readOnly} value={form.taxNumber} onChange={(e) => setForm({ ...form, taxNumber: e.target.value })} /></div>
-              <div className="form-group">
-                <label>Logo</label>
-                {!readOnly ? (
-                  <label className="flex items-center gap-2 border border-dashed border-gray-300 rounded px-2.5 py-2 text-xs cursor-pointer">
-                    <Upload size={14} /> {form.logoBase64 ? 'Changer' : 'Upload'}
-                    <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-                  </label>
-                ) : form.logoBase64 ? <img src={form.logoBase64} alt="Logo" className="h-9 rounded border" /> : <span className="text-xs text-gray-400">—</span>}
-              </div>
-            </div>
-            <div className="form-group"><label>Description</label><textarea rows={2} disabled={readOnly} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
-
-            <div className="form-section-title">Contact Information</div>
-            <div className="form-row-3">
-              <div className="form-group"><label>Primary Phone *</label><input required disabled={readOnly} value={form.primaryPhone} onChange={(e) => setForm({ ...form, primaryPhone: e.target.value })} /></div>
-              <div className="form-group"><label>Secondary Phone</label><input disabled={readOnly} value={form.secondaryPhone} onChange={(e) => setForm({ ...form, secondaryPhone: e.target.value })} /></div>
-              <div className="form-group"><label>Email</label><input type="email" disabled={readOnly} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-            </div>
-            <div className="form-group"><label>Website</label><input disabled={readOnly} value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} /></div>
-
-            <div className="form-section-title">Location</div>
-            <div className="form-row-3">
-              <div className="form-group">
-                <label>Country</label>
-                <select disabled={readOnly} value={form.paysID} onChange={(e) => setForm({ ...form, paysID: e.target.value, villeID: '' })}>
-                  <option value="">—</option>
-                  {countries.map((c) => <option key={c.paysID} value={c.paysID}>{c.nom}</option>)}
-                </select>
-              </div>
-              <div className="form-group">
-                <label>City</label>
-                <select disabled={readOnly || !form.paysID} value={form.villeID} onChange={(e) => setForm({ ...form, villeID: e.target.value })}>
-                  <option value="">—</option>
-                  {cities.map((c) => <option key={c.villeID} value={c.villeID}>{c.nom}</option>)}
-                </select>
-              </div>
-              <div className="form-group"><label>Postal Code</label><input disabled={readOnly} value={form.postalCode} onChange={(e) => setForm({ ...form, postalCode: e.target.value })} /></div>
-            </div>
-            <div className="form-group"><label>Address</label><input disabled={readOnly} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
-
-            <div className="form-section-title">Business Settings</div>
-            <div className="form-row-3">
-              <div className="form-group">
-                <label>Default Currency *</label>
-                <select disabled={readOnly} value={form.currencyCode} onChange={(e) => setForm({ ...form, currencyCode: e.target.value })}>
-                  <option value="">—</option>
-                  {currencies.map((c) => <option key={c.currencyCode} value={c.currencyCode}>{c.currencyCode} — {c.nom}</option>)}
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Language *</label>
-                <select disabled={readOnly} value={form.language} onChange={(e) => setForm({ ...form, language: e.target.value })}>
-                  <option value="">—</option>
-                  {languages.map((l) => <option key={l.languageCode} value={l.languageCode}>{l.nom}</option>)}
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Timezone *</label>
-                <select disabled={readOnly} value={form.timezone} onChange={(e) => setForm({ ...form, timezone: e.target.value })}>
-                  <option value="">—</option>
-                  {timezones.map((tz) => <option key={tz.timeZoneID} value={tz.code}>{tz.label} ({tz.utcOffset})</option>)}
-                </select>
-              </div>
-            </div>
-            <div className="form-row-3">
-              <div className="form-group"><label>Préfixe Compte</label><input disabled={readOnly} value={form.prefixeCompte} onChange={(e) => setForm({ ...form, prefixeCompte: e.target.value })} /></div>
-              <div className="form-group"><label>Suffixe Compte</label><input disabled={readOnly} value={form.suffixeCompte} onChange={(e) => setForm({ ...form, suffixeCompte: e.target.value })} /></div>
-              <div className="form-group"><label>Taille Compte</label><input type="number" disabled={readOnly} value={form.tailleCompte} onChange={(e) => setForm({ ...form, tailleCompte: Number(e.target.value) })} /></div>
-            </div>
-            <div className="form-row-3">
-              <div className="form-group"><label>Taux Taxe (%)</label><input type="number" step="0.01" disabled={readOnly} value={form.tauxTaxe} onChange={(e) => setForm({ ...form, tauxTaxe: Number(e.target.value) })} /></div>
-              {mode === 'edit' && (
-                <div className="form-group">
-                  <label>Status</label>
-                  <select value={form.statut} onChange={(e) => setForm({ ...form, statut: e.target.value })}>
-                    <option value="ACTIVE">Active</option>
-                    <option value="INACTIF">Inactive</option>
-                  </select>
+              {/* General Information */}
+              <div className="form-card lg:col-span-2">
+                <div className="form-card-title"><Building2 size={12} /> General Information</div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div className="form-group"><label>IMF Code *</label><input required disabled={mode !== 'create'} value={form.codeIMF} onChange={(e) => setForm({ ...form, codeIMF: e.target.value })} placeholder="IMF001" /></div>
+                  <div className="form-group sm:col-span-2"><label>IMF Name *</label><input required disabled={readOnly} value={form.libelle} onChange={(e) => setForm({ ...form, libelle: e.target.value })} /></div>
+                  <div className="form-group"><label>Short Name</label><input disabled={readOnly} value={form.shortName} onChange={(e) => setForm({ ...form, shortName: e.target.value })} /></div>
+                  <div className="form-group"><label>Registration Number</label><input disabled={mode !== 'create'} value={form.registrationNumber} onChange={(e) => setForm({ ...form, registrationNumber: e.target.value })} /></div>
+                  <div className="form-group"><label>Tax Number</label><input disabled={readOnly} value={form.taxNumber} onChange={(e) => setForm({ ...form, taxNumber: e.target.value })} /></div>
+                  <div className="form-group sm:col-span-3"><label>Description</label><textarea rows={1} disabled={readOnly} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
                 </div>
-              )}
-              {mode !== 'create' && (
-                <div className="form-group"><label>Created By / Date</label><input disabled value={`${form.createdBy || ''} — ${form.dateCreation ? new Date(form.dateCreation).toLocaleDateString('fr-FR') : ''}`} /></div>
-              )}
+              </div>
+
+              {/* Logo Upload */}
+              <div className="form-card">
+                <div className="form-card-title"><ImageIcon size={12} /> Logo Upload</div>
+                <div className="flex items-center gap-3">
+                  {form.logoBase64 ? (
+                    <img src={form.logoBase64} alt="Logo" className="h-14 w-14 object-cover rounded border border-gray-300 bg-white" />
+                  ) : (
+                    <div className="h-14 w-14 rounded border border-dashed border-gray-300 flex items-center justify-center text-gray-300">
+                      <ImageIcon size={20} />
+                    </div>
+                  )}
+                  {!readOnly && (
+                    <label className="flex items-center gap-1.5 border border-dashed border-gray-300 rounded px-2.5 py-2 text-[11px] cursor-pointer hover:border-brand-blue">
+                      <Upload size={13} /> {form.logoBase64 ? 'Change' : 'Upload'}
+                      <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                    </label>
+                  )}
+                </div>
+              </div>
+
+              {/* Contact Information */}
+              <div className="form-card">
+                <div className="form-card-title"><Phone size={12} /> Contact Information</div>
+                <div className="form-group"><label>Primary Phone *</label><input required disabled={readOnly} value={form.primaryPhone} onChange={(e) => setForm({ ...form, primaryPhone: e.target.value })} /></div>
+                <div className="form-group"><label>Secondary Phone</label><input disabled={readOnly} value={form.secondaryPhone} onChange={(e) => setForm({ ...form, secondaryPhone: e.target.value })} /></div>
+                <div className="form-group"><label>Email</label><input type="email" disabled={readOnly} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
+                <div className="form-group"><label>Website</label><input disabled={readOnly} value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} /></div>
+              </div>
+
+              {/* Location */}
+              <div className="form-card">
+                <div className="form-card-title"><MapPin size={12} /> Location</div>
+                <div className="form-group">
+                  <label>Country</label>
+                  <SearchableSelect options={countryOptions} value={form.paysID} isDisabled={readOnly}
+                    onChange={(v) => setForm({ ...form, paysID: v, villeID: '' })} placeholder="Choisir un pays…" />
+                </div>
+                <div className="form-group">
+                  <label>City</label>
+                  <SearchableSelect options={cityOptions} value={form.villeID} isDisabled={readOnly || !form.paysID}
+                    onChange={(v) => setForm({ ...form, villeID: v })} placeholder="Choisir une ville…" />
+                </div>
+                <div className="form-group"><label>Address</label><input disabled={readOnly} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
+                <div className="form-group"><label>Postal Code</label><input disabled={readOnly} value={form.postalCode} onChange={(e) => setForm({ ...form, postalCode: e.target.value })} /></div>
+              </div>
+
+              {/* Business Settings */}
+              <div className="form-card lg:col-span-2">
+                <div className="form-card-title"><Settings2 size={12} /> Business Settings</div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div className="form-group">
+                    <label>Default Currency *</label>
+                    <SearchableSelect options={currencyOptions} value={form.currencyCode} isDisabled={readOnly}
+                      onChange={(v) => setForm({ ...form, currencyCode: v })} placeholder="Devise…" />
+                  </div>
+                  <div className="form-group">
+                    <label>Language *</label>
+                    <SearchableSelect options={languageOptions} value={form.language} isDisabled={readOnly}
+                      onChange={(v) => setForm({ ...form, language: v })} placeholder="Langue…" />
+                  </div>
+                  <div className="form-group">
+                    <label>Timezone *</label>
+                    <SearchableSelect options={timezoneOptions} value={form.timezone} isDisabled={readOnly}
+                      onChange={(v) => setForm({ ...form, timezone: v })} placeholder="Fuseau…" />
+                  </div>
+                  <div className="form-group"><label>Préfixe Compte</label><input disabled={readOnly} value={form.prefixeCompte} onChange={(e) => setForm({ ...form, prefixeCompte: e.target.value })} /></div>
+                  <div className="form-group"><label>Suffixe Compte</label><input disabled={readOnly} value={form.suffixeCompte} onChange={(e) => setForm({ ...form, suffixeCompte: e.target.value })} /></div>
+                  <div className="form-group"><label>Taille Compte</label><input type="number" disabled={readOnly} value={form.tailleCompte} onChange={(e) => setForm({ ...form, tailleCompte: Number(e.target.value) })} /></div>
+                  <div className="form-group"><label>Taux Taxe (%)</label><input type="number" step="0.01" disabled={readOnly} value={form.tauxTaxe} onChange={(e) => setForm({ ...form, tauxTaxe: Number(e.target.value) })} /></div>
+                  <div className="form-group flex-row items-center gap-2 sm:col-span-2">
+                    <label className="!mb-0">Assujetti Taxe</label>
+                    <input type="checkbox" disabled={readOnly} checked={form.assujettiTaxe} onChange={(e) => setForm({ ...form, assujettiTaxe: e.target.checked })} className="w-4 h-4" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Status + Audit */}
+              <div className="form-card">
+                <div className="form-card-title"><BadgeCheck size={12} /> Status & Audit</div>
+                {mode === 'edit' ? (
+                  <div className="form-group">
+                    <label>Status</label>
+                    <select value={form.statut} onChange={(e) => setForm({ ...form, statut: e.target.value })}>
+                      <option value="ACTIVE">Active</option>
+                      <option value="INACTIF">Inactive</option>
+                    </select>
+                  </div>
+                ) : mode === 'view' ? (
+                  <div className="form-group"><label>Status</label><StatusBadge status={form.statut} /></div>
+                ) : (
+                  <div className="text-[11px] text-gray-400">Statut initial : ACTIVE</div>
+                )}
+                {mode !== 'create' && (
+                  <>
+                    <div className="form-group"><label>Created By</label><input disabled value={form.createdBy || ''} /></div>
+                    <div className="form-group"><label>Created Date</label><input disabled value={form.dateCreation ? new Date(form.dateCreation).toLocaleDateString('fr-FR') : ''} /></div>
+                  </>
+                )}
+              </div>
             </div>
           </form>
-        </Modal>
+        </WideModal>
       )}
     </div>
   );

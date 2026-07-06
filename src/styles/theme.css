@@ -76,6 +76,16 @@ table.data-table { @apply table-auto min-w-full w-full border-collapse text-left
 .form-row-3 { @apply grid grid-cols-1 sm:grid-cols-3 gap-3; }
 .form-section-title { @apply text-xs font-bold text-brand-blue uppercase mt-3 mb-1 pb-1 border-b border-gray-100; }
 
+/* ---------- Enterprise form cards (used by dense multi-section modals like IMF) ---------- */
+.form-card { @apply bg-gray-50 border border-gray-200 rounded-lg p-3.5 flex flex-col gap-2.5; }
+.form-card-title {
+  @apply text-[10.5px] font-bold text-brand-blue uppercase tracking-wide mb-1 pb-1.5 border-b border-gray-200 flex items-center gap-1.5;
+}
+.form-card .form-group label { @apply text-[10.5px]; }
+.form-card .form-group input,
+.form-card .form-group select,
+.form-card .form-group textarea { @apply py-1.5 text-[12px]; }
+
 /* ---------- Login screen ---------- */
 .login-screen { @apply min-h-screen flex items-center justify-center normal-case; background: radial-gradient(circle at top left, #1E90FF, #0b1c3d 65%); }
 .login-card { @apply bg-white rounded-2xl p-10 w-full max-w-sm shadow-2xl; }
