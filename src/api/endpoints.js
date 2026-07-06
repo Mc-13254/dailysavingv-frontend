@@ -84,12 +84,18 @@ export const ContractAPI = {
 
 export const IMFAPI = {
   list: () => client.get('/api/imf'),
+  hasActive: () => client.get('/api/imf/has-active'),
   create: (payload) => client.post('/api/imf', payload),
   update: (code, payload) => client.put(`/api/imf/${code}`, payload),
   remove: (code) => client.delete(`/api/imf/${code}`),
   pending: () => client.get('/api/imf/pending'),
   approve: (pendingId) => client.post(`/api/imf/pending/${pendingId}/approve`),
   reject: (pendingId, reason) => client.post(`/api/imf/pending/${pendingId}/reject`, { reason }),
+};
+
+export const GeoAPI = {
+  countries: () => client.get('/api/geo/countries'),
+  cities: (paysId) => client.get('/api/geo/cities', { params: { paysId } }),
 };
 
 export const UserAPI = {

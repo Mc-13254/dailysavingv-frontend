@@ -67,10 +67,25 @@ export default function ExportDropdown({ columns, rows, filename = 'EXPORT' }) {
     XLSX.writeFile(wb, `${filename}.xlsx`);
   };
 
+  const exportCSV = () => {
+    const wsData = [columns.map((c) => c.label), ...rows.map((row) => columns.map((c) => cell(row, c)))];
+    const csv = wsData.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${filename}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handle = (type) => {
     if (type === 'pdf') exportPDF();
     else if (type === 'word') exportWord();
     else if (type === 'excel') exportExcel();
+    else if (type === 'csv') exportCSV();
     setOpen(false);
   };
 
@@ -89,6 +104,9 @@ export default function ExportDropdown({ columns, rows, filename = 'EXPORT' }) {
           </button>
           <button className="flex items-center gap-2 w-full px-3 py-1.5 hover:bg-gray-100" onClick={() => handle('excel')}>
             <FileSpreadsheet size={13} /> Excel
+          </button>
+          <button className="flex items-center gap-2 w-full px-3 py-1.5 hover:bg-gray-100" onClick={() => handle('csv')}>
+            <FileSpreadsheet size={13} /> CSV
           </button>
         </div>
       )}
