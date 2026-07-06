@@ -1,41 +1,80 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
-  LayoutGrid, ChevronDown, ChevronUp, User, Building2, Home, BadgeCheck,
-  Clock, Settings, Flag,
+  LayoutDashboard, ChevronDown, ChevronUp, User, Building2, Home, BadgeCheck,
+  Clock, Settings, Flag, Landmark, Users, ShieldCheck, KeyRound, FileSignature,
+  Percent, Layers, Hash, UserCog, UserPlus, TrendingUp, UserSearch, Wallet,
+  FileText, CalendarCheck, ArrowDownCircle, ArrowUpCircle, CheckCircle2,
+  BarChart3, LogIn, History, ScrollText, ShieldAlert, SlidersHorizontal,
+  ArrowLeftRight,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-// Sidebar structure follows the real business workflow:
-// IMF -> Agence -> Utilisateurs -> Collecteurs -> Contrats/Commissions -> Clients -> Comptes -> Transactions
+// Sidebar structure follows the business hierarchy:
+// IMF -> Agences -> Utilisateurs -> Collecteurs -> Paramètres métier -> Clients -> Opérations -> Rapports -> Sécurité
 const NAV_GROUPS = [
-  { to: '/', label: 'Tableau de bord', standalone: true },
-  { label: 'IMF', to: '/imf', standalone: true },
-  { label: 'Agences', to: '/agencies', standalone: true },
+  { to: '/', label: 'Tableau de bord', icon: LayoutDashboard, standalone: true },
+
   {
-    label: 'Utilisateurs', base: '/users', items: [
-      { to: '/users', label: 'Liste des utilisateurs' },
+    label: 'Administration', icon: ShieldCheck, base: '/admin', items: [
+      { to: '/imf', label: 'IMF', icon: Landmark },
+      { to: '/agencies', label: 'Agences', icon: Building2 },
+      { to: '/users', label: 'Utilisateurs', icon: Users },
+      { to: '/roles', label: 'Rôles', icon: ShieldCheck },
+      { to: '/habilitations', label: 'Habilitations / Permissions', icon: KeyRound },
     ]
   },
   {
-    label: 'Collecteurs', base: '/collectors', items: [
-      { to: '/collectors', label: 'Liste des collecteurs' },
+    label: 'Paramètres Métier', icon: SlidersHorizontal, base: '/settings-metier', items: [
+      { to: '/contract-types', label: 'Types de contrat', icon: FileSignature },
+      { to: '/commissions', label: 'Types de commission', icon: Percent },
+      { to: '/commission-ranges', label: 'Tranches de commission', icon: Layers },
+      { to: '/numbering', label: 'Paramètres de numérotation', icon: Hash },
     ]
   },
-  { label: 'Contrats', to: '/contracts', standalone: true },
-  { label: 'Commissions', to: '/commissions', standalone: true },
   {
-    label: 'Clients', base: '/clients', items: [
-      { to: '/clients', label: 'Liste des clients' },
+    label: 'Gestion des Collecteurs', icon: UserCog, base: '/collectors', items: [
+      { to: '/collectors', label: 'Collecteurs', icon: UserCog },
+      { to: '/collector-assignment', label: 'Affectation des collecteurs', icon: UserPlus },
+      { to: '/collector-performance', label: 'Performance des collecteurs', icon: TrendingUp },
     ]
   },
-  { label: 'Comptes', to: '/accounts', standalone: true },
-  { label: 'Transactions', to: '/transactions', standalone: true },
-  { label: 'Validations', to: '/validations', standalone: true },
+  {
+    label: 'Gestion des Clients', icon: Users, base: '/clients-mgmt', items: [
+      { to: '/prospects', label: 'Prospects', icon: UserSearch },
+      { to: '/clients', label: 'Clients', icon: User },
+      { to: '/accounts', label: 'Comptes', icon: Wallet },
+      { to: '/contracts', label: 'Contrats des clients', icon: FileText },
+    ]
+  },
+  {
+    label: 'Opérations', icon: ArrowLeftRight, base: '/operations', items: [
+      { to: '/daily-collections', label: 'Collectes journalières', icon: CalendarCheck },
+      { to: '/deposits', label: 'Dépôts', icon: ArrowDownCircle },
+      { to: '/withdrawals', label: 'Retraits', icon: ArrowUpCircle },
+      { to: '/validations', label: 'Validation des opérations', icon: CheckCircle2 },
+    ]
+  },
+  {
+    label: 'Rapports', icon: BarChart3, base: '/reports', items: [
+      { to: '/reports/collectors', label: 'Rapport des collecteurs', icon: UserCog },
+      { to: '/reports/clients', label: 'Rapport des clients', icon: Users },
+      { to: '/reports/agencies', label: 'Rapport des agences', icon: Building2 },
+      { to: '/reports/commissions', label: 'Commissions', icon: Percent },
+    ]
+  },
+  {
+    label: 'Sécurité', icon: ShieldAlert, base: '/security', items: [
+      { to: '/security/logins', label: 'Journal des connexions', icon: LogIn },
+      { to: '/security/history', label: 'Historique', icon: History },
+      { to: '/security/audit', label: 'Audit', icon: ScrollText },
+    ]
+  },
 ];
 
 function SidebarItem({ group }) {
   const location = useLocation();
+  const Icon = group.icon;
 
   if (group.standalone) {
     const isActive = location.pathname === group.to;
@@ -46,13 +85,13 @@ function SidebarItem({ group }) {
         className={`flex items-center gap-2 px-3 py-2 rounded-md text-xs font-semibold uppercase transition-colors
           ${isActive ? 'text-brand-blue' : 'text-gray-600 hover:bg-gray-50'}`}
       >
-        <LayoutGrid size={16} className={isActive ? 'text-brand-blue' : 'text-gray-400'} />
+        <Icon size={16} className={isActive ? 'text-brand-blue' : 'text-gray-400'} />
         {group.label}
       </NavLink>
     );
   }
 
-  const isGroupActive = location.pathname.startsWith(group.base);
+  const isGroupActive = group.items.some((i) => location.pathname === i.to);
   const [open, setOpen] = useState(isGroupActive);
 
   return (
@@ -63,7 +102,7 @@ function SidebarItem({ group }) {
           ${isGroupActive ? 'text-brand-blue' : 'text-gray-600 hover:bg-gray-50'}`}
       >
         <span className="flex items-center gap-2">
-          <LayoutGrid size={16} className={isGroupActive ? 'text-brand-blue' : 'text-gray-400'} />
+          <Icon size={16} className={isGroupActive ? 'text-brand-blue' : 'text-gray-400'} />
           {group.label}
         </span>
         {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -72,6 +111,7 @@ function SidebarItem({ group }) {
         <div className="ml-4 mt-1 flex flex-col gap-1">
           {group.items.map((item) => {
             const active = location.pathname === item.to;
+            const ItemIcon = item.icon;
             return (
               <NavLink
                 key={item.to}
@@ -79,7 +119,7 @@ function SidebarItem({ group }) {
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-[11px] font-semibold uppercase transition-colors
                   ${active ? 'bg-brand-blue text-white' : 'text-gray-500 hover:bg-gray-50'}`}
               >
-                <span className={`w-2 h-2 rounded-full border ${active ? 'bg-white border-white' : 'border-gray-400'}`} />
+                <ItemIcon size={13} className={active ? 'text-white' : 'text-gray-400'} />
                 {item.label}
               </NavLink>
             );
@@ -124,13 +164,13 @@ export default function Layout() {
   return (
     <div className="flex min-h-screen bg-gray-50 normal-case">
       {/* Sidebar */}
-      <aside className="w-60 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
-        <div className="px-5 py-5 border-b border-gray-100 flex items-center gap-2">
-          <div className="w-9 h-9 rounded-md bg-gradient-to-br from-brand-blue to-brand-navy flex items-center justify-center text-white font-bold text-sm">
+      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
+        <div className="px-5 py-5 bg-brand-blue flex items-center gap-2">
+          <div className="w-9 h-9 rounded-md bg-white/15 border border-white/30 flex items-center justify-center text-white font-bold text-sm">
             AC
           </div>
-          <div className="text-lg font-extrabold normal-case">
-            Any<span className="text-brand-blue">collect</span>
+          <div className="text-lg font-extrabold normal-case text-white">
+            Any<span className="text-white/80">collect</span>
           </div>
         </div>
 
