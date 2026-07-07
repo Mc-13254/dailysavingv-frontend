@@ -6,9 +6,9 @@ import StatusBadge from '../components/StatusBadge';
 import ExportDropdown from '../components/ExportDropdown';
 import { CommissionAPI } from '../api/endpoints';
 
-const emptyRangeForm = {
-  commissionTypeID: '', minAmount: '', maxAmount: '',
-  calculationMethod: 'FIXED', fixedAmount: '', percentageRate: '', currency: 'XAF',
+const emptyForm = {
+  commissionTypeID: '', description: '', inf: '', sup: '',
+  calculationMethod: 'FIXED', fixe: '', taux: '', minimum: '', maximum: '', codeU: 'XAF',
 };
 
 export default function CommissionRangeManagement() {
@@ -18,7 +18,7 @@ export default function CommissionRangeManagement() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState(emptyRangeForm);
+  const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState('');
 
   const loadTypes = async () => {
@@ -39,12 +39,14 @@ export default function CommissionRangeManagement() {
   useEffect(() => { loadTypes(); }, []);
   useEffect(() => { if (selectedType) loadRanges(); }, [selectedType]);
 
-  const openCreate = () => { setEditing(null); setForm(emptyRangeForm); setError(''); setShowModal(true); };
+  const openCreate = () => { setEditing(null); setForm(emptyForm); setError(''); setShowModal(true); };
   const openEdit = (r) => {
     setEditing(r);
     setForm({
-      commissionTypeID: r.commissionTypeID, minAmount: r.minAmount, maxAmount: r.maxAmount,
-      calculationMethod: r.calculationMethod, fixedAmount: r.fixedAmount || '', percentageRate: r.percentageRate || '', currency: r.currency,
+      commissionTypeID: r.commissionTypeID, description: r.description || '',
+      inf: r.inf, sup: r.sup,
+      calculationMethod: r.calculationMethod, fixe: r.fixe || '', taux: r.taux || '',
+      minimum: r.minimum ?? '', maximum: r.maximum ?? '', codeU: r.codeU,
     });
     setError('');
     setShowModal(true);
@@ -55,12 +57,15 @@ export default function CommissionRangeManagement() {
     setError('');
     const payload = {
       commissionTypeID: Number(form.commissionTypeID || selectedType),
-      minAmount: Number(form.minAmount),
-      maxAmount: Number(form.maxAmount),
+      description: form.description || null,
+      inf: Number(form.inf),
+      sup: Number(form.sup),
       calculationMethod: form.calculationMethod,
-      fixedAmount: form.calculationMethod === 'FIXED' ? Number(form.fixedAmount) : null,
-      percentageRate: form.calculationMethod === 'PERCENTAGE' ? Number(form.percentageRate) : null,
-      currency: form.currency,
+      fixe: form.calculationMethod === 'FIXED' ? Number(form.fixe) : null,
+      taux: form.calculationMethod === 'PERCENTAGE' ? Number(form.taux) : null,
+      minimum: form.minimum === '' ? null : Number(form.minimum),
+      maximum: form.maximum === '' ? null : Number(form.maximum),
+      codeU: form.codeU,
     };
     try {
       if (editing) {
@@ -69,7 +74,7 @@ export default function CommissionRangeManagement() {
         await CommissionAPI.createRange(payload);
       }
       setShowModal(false);
-      setForm(emptyRangeForm);
+      setForm(emptyForm);
       setEditing(null);
       loadRanges();
     } catch (err) {
@@ -83,16 +88,27 @@ export default function CommissionRangeManagement() {
     loadRanges();
   };
 
+  const fmtDate = (d) => (d ? new Date(d).toLocaleDateString('fr-FR') : '—');
+
   const columns = [
-    { key: 'commissionRangeID', label: 'RangeID' },
-    { key: 'commissionTypeName', label: 'Type' },
-    { key: 'minAmount', label: 'Min' },
-    { key: 'maxAmount', label: 'Max' },
+    { key: 'commissionRangeID', label: 'RangeId' },
+    { key: 'description', label: 'Description', render: (r) => r.description || '—' },
+    { key: 'codeComis', label: 'CodeComis' },
+    { key: 'inf', label: 'Inf' },
+    { key: 'sup', label: 'Sup' },
     { key: 'calculationMethod', label: 'Méthode' },
-    { key: 'fixedAmount', label: 'Fixe', render: (r) => r.fixedAmount ?? '—' },
-    { key: 'percentageRate', label: 'Taux %', render: (r) => r.percentageRate ? `${r.percentageRate}%` : '—' },
-    { key: 'currency', label: 'Devise' },
+    { key: 'fixe', label: 'Fixe', render: (r) => r.fixe ?? '—' },
+    { key: 'taux', label: 'TAUX', render: (r) => r.taux ? `${r.taux}%` : '—' },
+    { key: 'minimum', label: 'Minimum', render: (r) => r.minimum ?? '—' },
+    { key: 'maximum', label: 'Maximum', render: (r) => r.maximum ?? '—' },
+    { key: 'codeU', label: 'CodeU' },
     { key: 'statut', label: 'Status', render: (r) => <StatusBadge status={r.statut} /> },
+    { key: 'createDate', label: 'CreateDate', render: (r) => fmtDate(r.createDate) },
+    { key: 'userCreate', label: 'UserCreate', render: (r) => r.userCreate || '—' },
+    { key: 'userVal', label: 'UserVal', render: (r) => r.userVal || '—' },
+    { key: 'dateValidation', label: 'DateValidation', render: (r) => fmtDate(r.dateValidation) },
+    { key: 'lastUserModif', label: 'LastUserModif', render: (r) => r.lastUserModif || '—' },
+    { key: 'dateModification', label: 'DateModification', render: (r) => fmtDate(r.dateModification) },
     {
       key: 'actions', label: 'Actions', sortable: false, render: (r) => (
         <div className="flex items-center gap-2">
@@ -113,11 +129,13 @@ export default function CommissionRangeManagement() {
         <button className="btn btn-primary" onClick={openCreate}>+ Add Commission Range</button>
       </div>
 
-      <div className="toolbar">
-        <select className="search-input" style={{ flex: 'none', minWidth: 260 }} value={selectedType} onChange={(e) => setSelectedType(e.target.value)}>
-          {types.map((t) => <option key={t.commissionTypeID} value={t.commissionTypeID}>{t.name} (ID: {t.commissionTypeID})</option>)}
+      <div className="toolbar flex-wrap">
+        <select className="search-input" style={{ flex: '1 1 220px', minWidth: 200, maxWidth: 320 }} value={selectedType} onChange={(e) => setSelectedType(e.target.value)}>
+          {types.map((t) => <option key={t.commissionTypeID} value={t.commissionTypeID}>{t.name} ({t.code})</option>)}
         </select>
-        <ExportDropdown filename="COMMISSION_RANGES" columns={columns.filter((c) => c.key !== 'actions')} rows={ranges} />
+        <div className="ml-auto">
+          <ExportDropdown filename="COMMISSION_RANGES" columns={columns.filter((c) => c.key !== 'actions')} rows={ranges} />
+        </div>
       </div>
 
       <DataTable columns={columns} rows={ranges} loading={loading} totalLabel={`TOTAL: ${ranges.length}`} />
@@ -132,28 +150,33 @@ export default function CommissionRangeManagement() {
           {error && <div className="error-banner">{error}</div>}
           <form id="commission-range-form" onSubmit={handleSubmit} style={{ display: 'contents' }}>
             <div className="form-group">
-              <label>Commission Type</label>
+              <label>CodeComis (Commission Type)</label>
               <select value={form.commissionTypeID || selectedType} onChange={(e) => setForm({ ...form, commissionTypeID: e.target.value })}>
-                {types.map((t) => <option key={t.commissionTypeID} value={t.commissionTypeID}>{t.name}</option>)}
+                {types.map((t) => <option key={t.commissionTypeID} value={t.commissionTypeID}>{t.name} ({t.code})</option>)}
               </select>
             </div>
+            <div className="form-group"><label>Description</label><input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
             <div className="form-row">
-              <div className="form-group"><label>Montant Min</label><input type="number" required value={form.minAmount} onChange={(e) => setForm({ ...form, minAmount: e.target.value })} /></div>
-              <div className="form-group"><label>Montant Max</label><input type="number" required value={form.maxAmount} onChange={(e) => setForm({ ...form, maxAmount: e.target.value })} /></div>
+              <div className="form-group"><label>Inf</label><input type="number" required value={form.inf} onChange={(e) => setForm({ ...form, inf: e.target.value })} /></div>
+              <div className="form-group"><label>Sup</label><input type="number" required value={form.sup} onChange={(e) => setForm({ ...form, sup: e.target.value })} /></div>
             </div>
             <div className="form-group">
               <label>Méthode de calcul</label>
-              <select value={form.calculationMethod} onChange={(e) => setForm({ ...form, calculationMethod: e.target.value, fixedAmount: '', percentageRate: '' })}>
+              <select value={form.calculationMethod} onChange={(e) => setForm({ ...form, calculationMethod: e.target.value, fixe: '', taux: '' })}>
                 <option value="FIXED">Montant fixe</option>
                 <option value="PERCENTAGE">Pourcentage</option>
               </select>
             </div>
             {form.calculationMethod === 'FIXED' ? (
-              <div className="form-group"><label>Montant fixe (XAF)</label><input type="number" required value={form.fixedAmount} onChange={(e) => setForm({ ...form, fixedAmount: e.target.value })} /></div>
+              <div className="form-group"><label>Fixe (XAF)</label><input type="number" required value={form.fixe} onChange={(e) => setForm({ ...form, fixe: e.target.value })} /></div>
             ) : (
-              <div className="form-group"><label>Taux (%)</label><input type="number" step="0.01" required value={form.percentageRate} onChange={(e) => setForm({ ...form, percentageRate: e.target.value })} /></div>
+              <div className="form-group"><label>TAUX (%)</label><input type="number" step="0.01" required value={form.taux} onChange={(e) => setForm({ ...form, taux: e.target.value })} /></div>
             )}
-            <div className="form-group"><label>Devise</label><input value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })} /></div>
+            <div className="form-row">
+              <div className="form-group"><label>Minimum (plancher de la commission)</label><input type="number" value={form.minimum} onChange={(e) => setForm({ ...form, minimum: e.target.value })} /></div>
+              <div className="form-group"><label>Maximum (plafond de la commission)</label><input type="number" value={form.maximum} onChange={(e) => setForm({ ...form, maximum: e.target.value })} /></div>
+            </div>
+            <div className="form-group"><label>CodeU (devise)</label><input value={form.codeU} onChange={(e) => setForm({ ...form, codeU: e.target.value })} /></div>
           </form>
         </Modal>
       )}
