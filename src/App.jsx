@@ -9,7 +9,8 @@ import CollectorManagement from './pages/CollectorManagement';
 import ClientManagement from './pages/ClientManagement';
 import AccountManagement from './pages/AccountManagement';
 import ContractManagement from './pages/ContractManagement';
-import CommissionManagement from './pages/CommissionManagement';
+import CommissionTypeManagement from './pages/CommissionTypeManagement';
+import CommissionRangeManagement from './pages/CommissionRangeManagement';
 import IMFManagement from './pages/IMFManagement';
 import RoleManagement from './pages/RoleManagement';
 import DepartmentManagement from './pages/DepartmentManagement';
@@ -42,8 +43,8 @@ function AppRoutes() {
 
         {/* Paramètres Métier */}
         <Route path="contract-types" element={<ContractTypeManagement />} />
-        <Route path="commissions" element={<CommissionManagement />} />
-        <Route path="commission-ranges" element={<CommissionManagement />} />
+        <Route path="commissions" element={<CommissionTypeManagement />} />
+        <Route path="commission-ranges" element={<CommissionRangeManagement />} />
         <Route path="numbering" element={<ComingSoon title="Paramètres de numérotation" description="Préfixes/suffixes déjà configurables depuis IMF → Administration." />} />
 
         {/* Gestion des Collecteurs */}

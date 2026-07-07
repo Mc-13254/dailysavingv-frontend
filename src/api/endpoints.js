@@ -30,9 +30,6 @@ export const CommissionAPI = {
   createType: (payload) => client.post('/api/commission/types', payload),
   updateType: (id, payload) => client.put(`/api/commission/types/${id}`, payload),
   removeType: (id) => client.delete(`/api/commission/types/${id}`),
-  pendingTypes: () => client.get('/api/commission/types/pending'),
-  approveType: (pendingId) => client.post(`/api/commission/types/pending/${pendingId}/approve`),
-  rejectType: (pendingId, reason) => client.post(`/api/commission/types/pending/${pendingId}/reject`, { reason }),
 
   ranges: (commissionTypeId) => client.get('/api/commission/ranges', { params: { commissionTypeId } }),
   createRange: (payload) => client.post('/api/commission/ranges', payload),
