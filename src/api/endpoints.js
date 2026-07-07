@@ -104,6 +104,16 @@ export const RoleAPI = {
   reject: (pendingId, reason) => client.post(`/api/roles/pending/${pendingId}/reject`, { reason }),
 };
 
+export const DepartmentAPI = {
+  list: () => client.get('/api/department'),
+  create: (payload) => client.post('/api/department', payload),
+  update: (id, payload) => client.put(`/api/department/${id}`, payload),
+  remove: (id) => client.delete(`/api/department/${id}`),
+  pending: () => client.get('/api/department/pending'),
+  approve: (pendingId) => client.post(`/api/department/pending/${pendingId}/approve`),
+  reject: (pendingId, reason) => client.post(`/api/department/pending/${pendingId}/reject`, { reason }),
+};
+
 export const GeoAPI = {
   countries: () => client.get('/api/geo/countries'),
   cities: (paysId) => client.get('/api/geo/cities', { params: { paysId } }),
