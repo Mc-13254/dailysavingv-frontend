@@ -5,15 +5,20 @@ import WideModal from '../components/WideModal';
 import StatusBadge from '../components/StatusBadge';
 import ExportDropdown from '../components/ExportDropdown';
 import SearchableSelect from '../components/SearchableSelect';
-import { UserAPI, RoleAPI, IMFAPI, AgencyAPI } from '../api/endpoints';
+import { UserAPI, RoleAPI, IMFAPI, AgencyAPI, GeoAPI } from '../api/endpoints';
+
+const GENDER_OPTIONS = ['Male', 'Female'];
+const MARITAL_OPTIONS = ['Single', 'Married', 'Divorced', 'Widowed'];
 
 const TYPE_USER_OPTIONS = ['Administrator', 'Manager', 'Cashier', 'Collector', 'Supervisor', 'Auditor'];
 
 const emptyForm = {
   username: '', password: '', confirmPassword: '', roleID: '', typeUser: '',
-  firstName: '', lastName: '', email: '', phone: '', secondaryPhone: '', adresse: '', cni: '',
+  firstName: '', lastName: '', gender: '', dateOfBirth: '', nationality: '', maritalStatus: '',
+  email: '', phone: '', secondaryPhone: '', adresse: '', cni: '',
+  paysID: '', villeID: '',
   photo: '', signe: '',
-  codeIMF: '', agenceID: '',
+  codeIMF: '', agenceID: '', department: '', jobTitle: '',
   debitMax: '', creditMax: '', validationMax: '', plafondCollect: '', caution: '',
   statut: 'ACTIVE',
 };
@@ -29,6 +34,8 @@ export default function UserManagement() {
   const [roles, setRoles] = useState([]);
   const [imfs, setImfs] = useState([]);
   const [agencies, setAgencies] = useState([]);
+  const [countries, setCountries] = useState([]);
+  const [cities, setCities] = useState([]);
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
 
@@ -45,11 +52,18 @@ export default function UserManagement() {
     RoleAPI.active().then(({ data }) => setRoles(data)).catch(() => {});
     IMFAPI.list().then(({ data }) => setImfs(data.filter((i) => i.statut === 'ACTIVE'))).catch(() => {});
     AgencyAPI.list().then(({ data }) => setAgencies(data.filter((a) => a.statut === 'ACTIVE'))).catch(() => {});
+    GeoAPI.countries().then(({ data }) => setCountries(data)).catch(() => {});
   }, []);
+  useEffect(() => {
+    if (form.paysID) GeoAPI.cities(form.paysID).then(({ data }) => setCities(data)).catch(() => {});
+    else setCities([]);
+  }, [form.paysID]);
 
   const roleOptions = roles.map((r) => ({ value: r.roleID, label: r.libelle }));
   const imfOptions = imfs.map((i) => ({ value: i.codeIMF, label: `${i.codeIMF} — ${i.libelle}` }));
   const agencyOptionsForIMF = agencies.filter((a) => a.codeIMF === form.codeIMF).map((a) => ({ value: a.agenceID, label: a.nom }));
+  const countryOptions = countries.map((c) => ({ value: c.paysID, label: c.nom }));
+  const cityOptions = cities.map((c) => ({ value: c.villeID, label: c.nom }));
 
   const filtered = rows
     .filter((r) => tab === 'validated' ? r.validationStatus === 'VALIDATED' : r.validationStatus === 'PENDING')
@@ -69,15 +83,20 @@ export default function UserManagement() {
     return {
       __codeUser: row.codeUser, username: row.username, password: '', confirmPassword: '',
       roleID: row.roleID, typeUser: row.typeUser || '',
-      firstName: row.firstName || '', lastName: row.lastName || '', email: row.email || '',
-      phone: row.phone || '', secondaryPhone: '', adresse: row.adresse || '', cni: row.cni || '',
+      firstName: row.firstName || '', lastName: row.lastName || '',
+      gender: row.gender || '', dateOfBirth: row.dateOfBirth ? row.dateOfBirth.slice(0, 10) : '',
+      nationality: row.nationality || '', maritalStatus: row.maritalStatus || '',
+      email: row.email || '', phone: row.phone || '', secondaryPhone: '', adresse: row.adresse || '', cni: row.cni || '',
+      paysID: row.paysID || '', villeID: row.villeID || '',
       photo: row.photo || '', signe: row.signe || '',
       codeIMF: row.codeIMF || '', agenceID: row.agenceID || '',
+      department: row.department || '', jobTitle: row.jobTitle || '',
       debitMax: row.debitMax ?? '', creditMax: row.creditMax ?? '', validationMax: row.validationMax ?? '',
       plafondCollect: row.plafondCollect ?? '', caution: row.caution ?? '',
       statut: row.statut, createdBy: row.createdBy, createdDate: row.createdDate,
       userValidation: row.userValidation, dateValidation: row.dateValidation,
       lastUserModif: row.lastUserModif, dateModification: row.dateModification, lastLogin: row.lastLogin,
+      lastUserSupervise: row.lastUserSupervise, lastDateSupervise: row.lastDateSupervise,
     };
   }
 
@@ -102,7 +121,12 @@ export default function UserManagement() {
           username: form.username, password: form.password, confirmPassword: form.confirmPassword,
           email: form.email, phone: form.phone, secondaryPhone: form.secondaryPhone,
           adresse: form.adresse, cni: form.cni, roleID: form.roleID, typeUser: form.typeUser,
-          firstName: form.firstName, lastName: form.lastName, photo: form.photo, signe: form.signe,
+          firstName: form.firstName, lastName: form.lastName,
+          gender: form.gender, dateOfBirth: form.dateOfBirth || null,
+          nationality: form.nationality, maritalStatus: form.maritalStatus,
+          department: form.department, jobTitle: form.jobTitle,
+          photo: form.photo, signe: form.signe,
+          paysID: form.paysID || null, villeID: form.villeID || null,
           agenceID: form.agenceID || null,
           debitMax: form.debitMax || null, creditMax: form.creditMax || null, validationMax: form.validationMax || null,
           plafondCollect: form.plafondCollect || null, caution: form.caution || null,
@@ -113,7 +137,12 @@ export default function UserManagement() {
           email: form.email, phone: form.phone, adresse: form.adresse, cni: form.cni,
           roleID: form.roleID, agenceID: form.agenceID || null, typeUser: form.typeUser, statut: form.statut,
           newPassword: form.password || null,
-          firstName: form.firstName, lastName: form.lastName, photo: form.photo, signe: form.signe,
+          firstName: form.firstName, lastName: form.lastName,
+          gender: form.gender, dateOfBirth: form.dateOfBirth || null,
+          nationality: form.nationality, maritalStatus: form.maritalStatus,
+          department: form.department, jobTitle: form.jobTitle,
+          photo: form.photo, signe: form.signe,
+          paysID: form.paysID || null, villeID: form.villeID || null,
           debitMax: form.debitMax || null, creditMax: form.creditMax || null, validationMax: form.validationMax || null,
           plafondCollect: form.plafondCollect || null, caution: form.caution || null,
         });
@@ -251,12 +280,43 @@ export default function UserManagement() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                   <div className="form-group"><label>First Name *</label><input required disabled={readOnly} value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} /></div>
                   <div className="form-group"><label>Last Name *</label><input required disabled={readOnly} value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} /></div>
+                  <div className="form-group">
+                    <label>Gender *</label>
+                    <select required disabled={readOnly} value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}>
+                      <option value="">—</option>
+                      {GENDER_OPTIONS.map((g) => <option key={g} value={g}>{g}</option>)}
+                    </select>
+                  </div>
+                  <div className="form-group"><label>Date of Birth</label><input type="date" disabled={readOnly} value={form.dateOfBirth} onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })} /></div>
+                  <div className="form-group"><label>Nationality</label><input disabled={readOnly} value={form.nationality} onChange={(e) => setForm({ ...form, nationality: e.target.value })} /></div>
+                  <div className="form-group"><label>National ID (CNI)</label><input disabled={readOnly} value={form.cni} onChange={(e) => setForm({ ...form, cni: e.target.value })} /></div>
+                  <div className="form-group">
+                    <label>Marital Status</label>
+                    <select disabled={readOnly} value={form.maritalStatus} onChange={(e) => setForm({ ...form, maritalStatus: e.target.value })}>
+                      <option value="">—</option>
+                      {MARITAL_OPTIONS.map((m) => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                  </div>
                   <div className="form-group"><label>Email *</label><input type="email" required disabled={readOnly} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
                   <div className="form-group"><label>Primary Phone *</label><input required disabled={readOnly} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
                   <div className="form-group"><label>Secondary Phone</label><input disabled={readOnly} value={form.secondaryPhone} onChange={(e) => setForm({ ...form, secondaryPhone: e.target.value })} /></div>
-                  <div className="form-group"><label>National ID (CNI)</label><input disabled={readOnly} value={form.cni} onChange={(e) => setForm({ ...form, cni: e.target.value })} /></div>
-                  <div className="form-group sm:col-span-3"><label>Address</label><input disabled={readOnly} value={form.adresse} onChange={(e) => setForm({ ...form, adresse: e.target.value })} /></div>
                 </div>
+              </div>
+
+              {/* Contact & Location */}
+              <div className="form-card">
+                <div className="form-card-title"><Phone size={12} /> Contact & Location</div>
+                <div className="form-group">
+                  <label>Country *</label>
+                  <SearchableSelect options={countryOptions} value={form.paysID} isDisabled={readOnly}
+                    onChange={(v) => setForm({ ...form, paysID: v, villeID: '' })} placeholder="Choisir un pays…" />
+                </div>
+                <div className="form-group">
+                  <label>City *</label>
+                  <SearchableSelect options={cityOptions} value={form.villeID} isDisabled={readOnly || !form.paysID}
+                    onChange={(v) => setForm({ ...form, villeID: v })} placeholder="Choisir une ville…" />
+                </div>
+                <div className="form-group"><label>Address</label><input disabled={readOnly} value={form.adresse} onChange={(e) => setForm({ ...form, adresse: e.target.value })} /></div>
               </div>
 
               {/* Organization */}
@@ -272,6 +332,8 @@ export default function UserManagement() {
                   <SearchableSelect options={agencyOptionsForIMF} value={form.agenceID} isDisabled={readOnly || !form.codeIMF}
                     onChange={(v) => setForm({ ...form, agenceID: v })} placeholder="Choisir une agence…" />
                 </div>
+                <div className="form-group"><label>Department</label><input disabled={readOnly} value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} /></div>
+                <div className="form-group"><label>Job Title</label><input disabled={readOnly} value={form.jobTitle} onChange={(e) => setForm({ ...form, jobTitle: e.target.value })} /></div>
               </div>
 
               {/* Financial Settings */}
@@ -308,6 +370,7 @@ export default function UserManagement() {
                     <div className="form-group"><label>Validated By / Date</label><input disabled value={`${form.userValidation || '—'} — ${form.dateValidation ? new Date(form.dateValidation).toLocaleDateString('fr-FR') : '—'}`} /></div>
                     <div className="form-group"><label>Last Modified By / Date</label><input disabled value={`${form.lastUserModif || '—'} — ${form.dateModification ? new Date(form.dateModification).toLocaleDateString('fr-FR') : '—'}`} /></div>
                     <div className="form-group"><label>Last Login</label><input disabled value={form.lastLogin ? new Date(form.lastLogin).toLocaleString('fr-FR') : '—'} /></div>
+                    <div className="form-group"><label>Last Supervisor / Date</label><input disabled value={`${form.lastUserSupervise || '—'} — ${form.lastDateSupervise ? new Date(form.lastDateSupervise).toLocaleDateString('fr-FR') : '—'}`} /></div>
                   </>
                 )}
               </div>
