@@ -128,6 +128,15 @@ export const ContractTypeAPI = {
   reject: (pendingId, reason) => client.post(`/api/contracttype/pending/${pendingId}/reject`, { reason }),
 };
 
+export const NumberingParameterAPI = {
+  list: () => client.get('/api/numberingparameter'),
+  active: () => client.get('/api/numberingparameter/active'),
+  create: (payload) => client.post('/api/numberingparameter', payload),
+  update: (id, payload) => client.put(`/api/numberingparameter/${id}`, payload),
+  remove: (id) => client.delete(`/api/numberingparameter/${id}`),
+  preview: (payload) => client.post('/api/numberingparameter/preview', payload),
+};
+
 export const GeoAPI = {
   countries: () => client.get('/api/geo/countries'),
   cities: (paysId) => client.get('/api/geo/cities', { params: { paysId } }),

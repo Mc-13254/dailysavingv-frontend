@@ -16,6 +16,7 @@ import RoleManagement from './pages/RoleManagement';
 import DepartmentManagement from './pages/DepartmentManagement';
 import PermissionManagement from './pages/PermissionManagement';
 import ContractTypeManagement from './pages/ContractTypeManagement';
+import NumberingParameterManagement from './pages/NumberingParameterManagement';
 import ValidationQueue from './pages/ValidationQueue';
 import TransactionManagement from './pages/TransactionManagement';
 import ComingSoon from './pages/ComingSoon';
@@ -45,7 +46,7 @@ function AppRoutes() {
         <Route path="contract-types" element={<ContractTypeManagement />} />
         <Route path="commissions" element={<CommissionTypeManagement />} />
         <Route path="commission-ranges" element={<CommissionRangeManagement />} />
-        <Route path="numbering" element={<ComingSoon title="Paramètres de numérotation" description="Préfixes/suffixes déjà configurables depuis IMF → Administration." />} />
+        <Route path="numbering" element={<NumberingParameterManagement />} />
 
         {/* Gestion des Collecteurs */}
         <Route path="collectors" element={<CollectorManagement />} />
