@@ -92,6 +92,10 @@ export default function AgencyManagement() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    if (mode === 'create' && !form.codeIMF) {
+      setError("Veuillez sélectionner une IMF valide et déjà validée avant de continuer.");
+      return;
+    }
     try {
       if (mode === 'create') {
         await AgencyAPI.create(form);
