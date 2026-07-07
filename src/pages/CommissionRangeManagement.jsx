@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 import StatusBadge from '../components/StatusBadge';
@@ -20,6 +21,7 @@ export default function CommissionRangeManagement() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
 
   const loadTypes = async () => {
     const { data } = await CommissionAPI.types();
@@ -70,8 +72,10 @@ export default function CommissionRangeManagement() {
     try {
       if (editing) {
         await CommissionAPI.updateRange(editing.commissionRangeID, payload);
+        setNotice("Modification soumise pour validation — le changement n'est appliqué qu'après approbation dans Validations → Commission Ranges.");
       } else {
         await CommissionAPI.createRange(payload);
+        setNotice("Commission Range soumise pour validation — elle n'apparaîtra comme ACTIVE qu'après approbation dans Validations → Commission Ranges.");
       }
       setShowModal(false);
       setForm(emptyForm);
@@ -83,9 +87,14 @@ export default function CommissionRangeManagement() {
   };
 
   const handleDelete = async (r) => {
-    if (!window.confirm('Désactiver cette plage de commission ?')) return;
-    await CommissionAPI.removeRange(r.commissionRangeID);
-    loadRanges();
+    if (!window.confirm('Voulez-vous vraiment supprimer cette plage de commission ? La suppression devra être validée avant de prendre effet.')) return;
+    try {
+      await CommissionAPI.removeRange(r.commissionRangeID);
+      setNotice("Suppression soumise pour validation — cette plage reste ACTIVE tant que la suppression n'est pas approuvée dans Validations → Commission Ranges.");
+      loadRanges();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Erreur lors de la suppression.');
+    }
   };
 
   const fmtDate = (d) => (d ? new Date(d).toLocaleDateString('fr-FR') : '—');
@@ -128,6 +137,12 @@ export default function CommissionRangeManagement() {
         </div>
         <button className="btn btn-primary" onClick={openCreate}>+ Add Commission Range</button>
       </div>
+
+      {notice && (
+        <div className="error-banner mb-3" style={{ background: '#dbeafe', color: '#1d4ed8' }}>
+          {notice} <Link to="/validations" className="underline font-semibold">Aller à Validations</Link>
+        </div>
+      )}
 
       <div className="toolbar flex-wrap">
         <select className="search-input" style={{ flex: '1 1 220px', minWidth: 200, maxWidth: 320 }} value={selectedType} onChange={(e) => setSelectedType(e.target.value)}>
