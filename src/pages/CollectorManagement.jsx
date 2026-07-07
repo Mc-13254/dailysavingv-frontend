@@ -1,110 +1,163 @@
 import { useEffect, useState } from 'react';
-import { Eye, Pencil, Trash2 } from 'lucide-react';
+import { Eye, Pencil, Trash2, UserSquare2, Briefcase, MapPin, BadgeCheck } from 'lucide-react';
 import DataTable from '../components/DataTable';
-import Modal from '../components/Modal';
+import WideModal from '../components/WideModal';
 import StatusBadge from '../components/StatusBadge';
 import ExportDropdown from '../components/ExportDropdown';
-import { CollectorAPI } from '../api/endpoints';
+import SearchableSelect from '../components/SearchableSelect';
+import { CollectorAPI, ContractTypeAPI, CommissionAPI, UserAPI } from '../api/endpoints';
+
+const CONTACT_TYPES = ['Field Collector', 'Senior Collector', 'Supervisor Collector'];
+const STATUS_OPTIONS = ['ACTIVE', 'INACTIVE', 'SUSPENDED', 'ONLEAVE'];
 
 const emptyForm = {
-  codeUser: '', name: '', phoneNumber: '', contactType: '', codeTerminal: '', plafond: 0, dateEmploi: '',
+  codeUser: '', contactType: 'Field Collector', dateEmploi: '', codeTerminal: '',
+  plafond: '', caution: '', contractID: '', commissionTypeID: '', commissionRangeID: '',
+  supervisorId: '', zoneCollecteID: '', collectMonth: '', collectDay: '', retraitMonth: '', retraitDay: '',
+  cdetat: 'ACTIVE',
 };
 
+// mode: 'create' | 'edit' | 'view' | null
 export default function CollectorManagement() {
-  const [tab, setTab] = useState('validated'); // validated | pending
-  const [search, setSearch] = useState('');
   const [rows, setRows] = useState([]);
-  const [pendingRows, setPendingRows] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [editing, setEditing] = useState(null); // collector being edited, or null for create
+  const [search, setSearch] = useState('');
+  const [mode, setMode] = useState(null);
   const [form, setForm] = useState(emptyForm);
-  const [submitting, setSubmitting] = useState(false);
+  const [availableUsers, setAvailableUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [contractTypes, setContractTypes] = useState([]);
+  const [commissionTypes, setCommissionTypes] = useState([]);
+  const [commissionRanges, setCommissionRanges] = useState([]);
+  const [supervisors, setSupervisors] = useState([]);
   const [notice, setNotice] = useState('');
+  const [error, setError] = useState('');
 
-  const loadAll = async () => {
+  const load = async () => {
     setLoading(true);
     try {
-      const [{ data: list }, { data: pend }] = await Promise.all([
-        CollectorAPI.list(search),
-        CollectorAPI.pending().catch(() => ({ data: [] })),
-      ]);
-      setRows(list);
-      setPendingRows(pend);
-    } finally {
-      setLoading(false);
-    }
+      const { data } = await CollectorAPI.list(search);
+      setRows(data);
+    } catch { setRows([]); }
+    finally { setLoading(false); }
+  };
+  useEffect(() => { load(); }, [search]);
+  useEffect(() => {
+    ContractTypeAPI.list().then(({ data }) => setContractTypes(data.filter((c) => c.statut === 'ACTIVE'))).catch(() => {});
+    CommissionAPI.types().then(({ data }) => setCommissionTypes(data.filter((c) => c.statut === 'ACTIVE'))).catch(() => {});
+    UserAPI.list().then(({ data }) => setSupervisors(data.filter((u) => ['Manager', 'Supervisor'].includes(u.typeUser)))).catch(() => {});
+  }, []);
+
+  const contractOptions = contractTypes.map((c) => ({ value: c.contractTypeID, label: c.contractName }));
+  const commissionTypeOptions = commissionTypes.map((c) => ({ value: c.commissionTypeID, label: c.name }));
+  const commissionRangeOptions = commissionRanges.map((r) => ({ value: r.commissionRangeID, label: `${r.inf} — ${r.sup} (${r.preview || ''})` }));
+  const supervisorOptions = supervisors.map((u) => ({ value: u.codeUser, label: `${u.codeUser} — ${u.firstName || ''} ${u.lastName || ''}` }));
+
+  const loadCommissionRanges = async (commissionTypeID) => {
+    if (!commissionTypeID) { setCommissionRanges([]); return; }
+    try {
+      const { data } = await CommissionAPI.ranges(commissionTypeID);
+      setCommissionRanges(data.filter((r) => r.statut === 'ACTIVE'));
+    } catch { setCommissionRanges([]); }
   };
 
-  useEffect(() => { loadAll(); }, [search]);
-
-  const openCreate = () => { setEditing(null); setForm(emptyForm); setShowModal(true); };
-  const openEdit = (row) => {
-    setEditing(row);
-    setForm({
-      codeUser: row.codeUser, name: row.name, phoneNumber: row.phoneNumber || '',
-      contactType: row.contactType || '', codeTerminal: row.codeTerminal || '',
-      plafond: row.plafond || 0, dateEmploi: row.dateEmploi ? row.dateEmploi.slice(0, 10) : '',
-    });
-    setShowModal(true);
+  const openCreate = async () => {
+    setMode('create');
+    setForm(emptyForm);
+    setSelectedUser(null);
+    setError('');
+    try {
+      const { data } = await CollectorAPI.availableUsers();
+      setAvailableUsers(data);
+    } catch { setAvailableUsers([]); }
   };
+
+  const openView = (row) => { setMode('view'); setForm(mapRowToForm(row)); setSelectedUser(null); if (row.commissionTypeID) loadCommissionRanges(row.commissionTypeID); };
+  const openEdit = (row) => { setMode('edit'); setForm(mapRowToForm(row)); setSelectedUser(null); setError(''); if (row.commissionTypeID) loadCommissionRanges(row.commissionTypeID); };
+  const close = () => setMode(null);
+
+  function mapRowToForm(row) {
+    return {
+      __id: row.collectorID, codeUser: row.codeUser, name: row.name, surname: row.surname,
+      phoneNumber: row.phoneNumber, agenceNom: row.agenceNom, departmentNom: row.departmentNom,
+      contactType: row.contactType || 'Field Collector', dateEmploi: row.dateEmploi ? row.dateEmploi.slice(0, 10) : '',
+      codeTerminal: row.codeTerminal || '', plafond: row.plafond ?? '', caution: row.caution ?? '',
+      contractID: row.contractID || '', commissionTypeID: row.commissionTypeID || '', commissionRangeID: row.commissionRangeID || '',
+      supervisorId: row.supervisorId || '', collectMonth: row.collectMonth ?? '', collectDay: row.collectDay ?? '',
+      retraitMonth: row.retraitMonth ?? '', retraitDay: row.retraitDay ?? '', cdetat: row.cdetat || row.CDETAT || 'ACTIVE',
+      userCreate: row.userCreate, createDate: row.createDate, userValidation: row.userValidation, dateValidation: row.dateValidation,
+      lastUserModif: row.lastUserModif, dateModification: row.dateModification,
+      lastUserSupervise: row.lastUserSupervise, lastDateSupervise: row.lastDateSupervise,
+    };
+  }
+
+  const handleSelectUser = (codeUser) => {
+    const u = availableUsers.find((x) => x.codeUser === codeUser);
+    setSelectedUser(u || null);
+    setForm({ ...form, codeUser });
+  };
+
+  const numOrNull = (v) => (v === '' || v === null || v === undefined ? null : Number(v));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitting(true);
+    setError('');
     try {
-      if (editing) {
-        await CollectorAPI.update(editing.collectorID, {
-          name: form.name, phoneNumber: form.phoneNumber, isActive: true,
-          contactType: form.contactType, codeTerminal: form.codeTerminal, plafond: Number(form.plafond),
+      if (mode === 'create') {
+        if (!form.codeUser) { setError('Veuillez sélectionner un utilisateur.'); return; }
+        await CollectorAPI.create({
+          codeUser: form.codeUser, contactType: form.contactType, dateEmploi: form.dateEmploi || null,
+          codeTerminal: form.codeTerminal, plafond: numOrNull(form.plafond), caution: numOrNull(form.caution),
+          contractID: numOrNull(form.contractID), commissionTypeID: numOrNull(form.commissionTypeID),
+          commissionRangeID: numOrNull(form.commissionRangeID), supervisorId: form.supervisorId || null,
+          collectMonth: numOrNull(form.collectMonth), collectDay: numOrNull(form.collectDay),
+          retraitMonth: numOrNull(form.retraitMonth), retraitDay: numOrNull(form.retraitDay),
+        });
+        setNotice('Collecteur soumis pour validation.');
+      } else if (mode === 'edit') {
+        await CollectorAPI.update(form.__id, {
+          contactType: form.contactType, commissionTypeID: numOrNull(form.commissionTypeID),
+          commissionRangeID: numOrNull(form.commissionRangeID), contractID: numOrNull(form.contractID),
+          plafond: numOrNull(form.plafond), collectMonth: numOrNull(form.collectMonth), collectDay: numOrNull(form.collectDay),
+          retraitMonth: numOrNull(form.retraitMonth), retraitDay: numOrNull(form.retraitDay),
+          supervisorId: form.supervisorId || null, cdetat: form.cdetat,
         });
         setNotice('Modification soumise pour validation.');
-      } else {
-        await CollectorAPI.create(form);
-        setNotice('Collecteur soumis pour validation (Maker-Checker).');
       }
-      setShowModal(false);
-      setForm(emptyForm);
-      setEditing(null);
-      loadAll();
+      close();
+      load();
     } catch (err) {
-      setNotice(err.response?.data?.message || "Erreur lors de l'enregistrement.");
-    } finally {
-      setSubmitting(false);
+      setError(err.response?.data?.message || "Erreur lors de l'enregistrement.");
     }
   };
 
   const handleDelete = async (row) => {
-    if (!window.confirm(`Supprimer le collecteur ${row.collectorID} ? (soumis pour validation)`)) return;
-    await CollectorAPI.remove(row.collectorID);
-    setNotice('Suppression soumise pour validation.');
-    loadAll();
+    if (!window.confirm(`Voulez-vous vraiment supprimer le collecteur ${row.name} ${row.surname || ''} ?`)) return;
+    try {
+      await CollectorAPI.remove(row.collectorID);
+      setNotice('Suppression soumise pour validation.');
+      load();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Erreur lors de la suppression.');
+    }
   };
 
-  const handleApprove = async (pendingId) => {
-    await CollectorAPI.approve(pendingId);
-    loadAll();
-  };
-  const handleReject = async (pendingId) => {
-    const reason = window.prompt('Motif du rejet ?') || 'Non spécifié';
-    await CollectorAPI.reject(pendingId, reason);
-    loadAll();
-  };
-
-  const validatedColumns = [
-    { key: 'collectorID', label: 'CollectorID' },
-    { key: 'codeUser', label: 'CodeU' },
-    { key: 'name', label: 'Name' },
-    { key: 'phoneNumber', label: 'PhoneNumber' },
-    { key: 'agenceNom', label: 'Agence' },
-    { key: 'isActive', label: 'IsActive', render: (r) => <StatusBadge status={r.isActive ? 'ACTIVE' : 'INACTIVE'} /> },
-    { key: 'dateEmploi', label: 'DateEmploi', render: (r) => r.dateEmploi ? new Date(r.dateEmploi).toLocaleDateString('fr-FR') : '—' },
-    { key: 'contactType', label: 'ContactType' },
-    { key: 'codeTerminal', label: 'CodeTerminal' },
-    { key: 'plafond', label: 'Plafond' },
+  const columns = [
+    { key: 'collectorID', label: 'Collector Code' },
+    { key: 'name', label: 'Full Name', render: (r) => `${r.name} ${r.surname || ''}` },
+    { key: 'codeUser', label: 'User Code' },
+    { key: 'agenceNom', label: 'Agency', render: (r) => r.agenceNom || '—' },
+    { key: 'departmentNom', label: 'Department', render: (r) => r.departmentNom || '—' },
+    { key: 'contractNom', label: 'Contract Type', render: (r) => r.contractNom || '—' },
+    { key: 'commissionTypeNom', label: 'Commission Type', render: (r) => r.commissionTypeNom || '—' },
+    { key: 'phoneNumber', label: 'Phone', render: (r) => r.phoneNumber || '—' },
+    { key: 'plafond', label: 'Collection Ceiling' },
+    { key: 'cdetat', label: 'Status', render: (r) => <StatusBadge status={r.cdetat || r.CDETAT} /> },
+    { key: 'createDate', label: 'Created', render: (r) => r.createDate ? new Date(r.createDate).toLocaleDateString('fr-FR') : '—' },
     {
       key: 'actions', label: 'Actions', sortable: false, render: (r) => (
         <div className="flex items-center gap-2">
+          <button className="btn-icon" title="Voir" onClick={() => openView(r)}><Eye size={15} /></button>
           <button className="btn-icon" title="Modifier" onClick={() => openEdit(r)}><Pencil size={15} /></button>
           <button className="btn-icon text-red-500" title="Supprimer" onClick={() => handleDelete(r)}><Trash2 size={15} /></button>
         </div>
@@ -112,96 +165,141 @@ export default function CollectorManagement() {
     },
   ];
 
-  const pendingColumns = [
-    { key: 'pendingID', label: 'Pending ID' },
-    { key: 'actionType', label: 'Action' },
-    { key: 'name', label: 'Name' },
-    { key: 'requestUser', label: 'Demandé par' },
-    { key: 'requestDate', label: 'Date', render: (r) => new Date(r.requestDate).toLocaleString('fr-FR') },
-    {
-      key: 'actions', label: 'Actions', sortable: false, render: (r) => (
-        <div className="flex items-center gap-2">
-          <button className="btn btn-primary btn-sm" onClick={() => handleApprove(r.pendingID)}>Valider</button>
-          <button className="btn btn-danger btn-sm" onClick={() => handleReject(r.pendingID)}>Rejeter</button>
-        </div>
-      )
-    },
-  ];
+  const readOnly = mode === 'view';
+  const userOptions = availableUsers.map((u) => ({ value: u.codeUser, label: `${u.codeUser} — ${u.firstName || ''} ${u.lastName || ''} (${u.agenceNom || 'N/A'})` }));
 
   return (
     <div className="panel">
       <div className="panel-header">
         <div className="panel-title">Collector Management</div>
-        <button className="btn btn-primary" onClick={openCreate}>+ Add Collector</button>
+        <button className="btn btn-primary" onClick={openCreate}>+ Create Collector</button>
       </div>
 
       {notice && <div className="error-banner" style={{ background: '#dcfce7', color: '#16a34a' }}>{notice}</div>}
 
       <div className="toolbar">
-        <input className="search-input" placeholder="Search collectors…" value={search} onChange={(e) => setSearch(e.target.value)} />
-        <div className="toggle-group">
-          <button className={`toggle-btn${tab === 'validated' ? ' active' : ''}`} onClick={() => setTab('validated')}>Validated</button>
-          <button className={`toggle-btn${tab === 'pending' ? ' active' : ''}`} onClick={() => setTab('pending')}>Pending</button>
-        </div>
-        {tab === 'validated' && (
-          <ExportDropdown
-            filename="COLLECTORS"
-            columns={validatedColumns.filter((c) => c.key !== 'actions' && c.key !== 'isActive').concat([{ key: 'isActive', label: 'IsActive', format: (r) => (r.isActive ? 'ACTIVE' : 'INACTIVE') }])}
-            rows={rows}
-          />
-        )}
+        <input className="search-input" placeholder="Search Collector (code, nom, téléphone, agence, statut)…" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <ExportDropdown filename="COLLECTORS" columns={columns.filter((c) => c.key !== 'actions')} rows={rows} />
       </div>
 
-      {tab === 'validated' ? (
-        <DataTable columns={validatedColumns} rows={rows} loading={loading} totalLabel={`TOTAL COLLECTORS: ${rows.length}`} />
-      ) : (
-        <DataTable columns={pendingColumns} rows={pendingRows} loading={loading} totalLabel={`EN ATTENTE: ${pendingRows.length}`} />
-      )}
+      <DataTable columns={columns} rows={rows} loading={loading} totalLabel={`TOTAL COLLECTORS: ${rows.length}`} />
 
-      {showModal && (
-        <Modal title={editing ? 'Edit Collector' : 'Add Collector'} onClose={() => setShowModal(false)} footer={
-          <>
-            <button className="btn btn-outline" onClick={() => setShowModal(false)}>Annuler</button>
-            <button className="btn btn-primary" form="collector-form" type="submit" disabled={submitting}>
-              {submitting ? 'Envoi…' : 'Soumettre pour validation'}
-            </button>
-          </>
-        }>
-          <form id="collector-form" onSubmit={handleSubmit} style={{ display: 'contents' }}>
-            <div className="form-group">
-              <label>Code Utilisateur (existant)</label>
-              <input required disabled={!!editing} value={form.codeUser} onChange={(e) => setForm({ ...form, codeUser: e.target.value })} placeholder="U-001" />
-            </div>
-            <div className="form-group">
-              <label>Nom complet</label>
-              <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-            </div>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Téléphone</label>
-                <input value={form.phoneNumber} onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })} />
+      {mode && (
+        <WideModal
+          title={mode === 'create' ? 'Create Collector' : mode === 'edit' ? 'Edit Collector' : 'View Collector'}
+          onClose={close}
+          footer={
+            readOnly
+              ? <button className="btn btn-outline" onClick={close}>Fermer</button>
+              : (
+                <>
+                  <button className="btn btn-outline" onClick={close}>Cancel</button>
+                  <button className="btn btn-primary" form="collector-form" type="submit">{mode === 'create' ? 'Save' : 'Update'}</button>
+                </>
+              )
+          }
+        >
+          {error && <div className="error-banner mb-3">{error}</div>}
+          <form id="collector-form" onSubmit={handleSubmit}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5 items-start">
+
+              {/* Select User (create only) */}
+              {mode === 'create' && (
+                <div className="form-card lg:col-span-3">
+                  <div className="form-card-title"><UserSquare2 size={12} /> Select User</div>
+                  <div className="form-group">
+                    <label>User *</label>
+                    <SearchableSelect options={userOptions} value={form.codeUser} onChange={handleSelectUser} placeholder="Choisir un utilisateur (Rôle Collector, Actif, non assigné)…" />
+                  </div>
+                  {selectedUser && (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-2 text-[12px]">
+                      <div><span className="text-gray-400">First Name:</span> {selectedUser.firstName}</div>
+                      <div><span className="text-gray-400">Last Name:</span> {selectedUser.lastName}</div>
+                      <div><span className="text-gray-400">Phone:</span> {selectedUser.phone || '—'}</div>
+                      <div><span className="text-gray-400">Email:</span> {selectedUser.email || '—'}</div>
+                      <div><span className="text-gray-400">Agency:</span> {selectedUser.agenceNom || '—'}</div>
+                      <div><span className="text-gray-400">Department:</span> {selectedUser.departmentNom || '—'}</div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Collector Information */}
+              <div className="form-card lg:col-span-2">
+                <div className="form-card-title"><Briefcase size={12} /> Collector Information</div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  {mode !== 'create' && <div className="form-group"><label>Collector Code</label><input disabled value={form.__id || ''} /></div>}
+                  <div className="form-group">
+                    <label>Collector Type</label>
+                    <select disabled={readOnly} value={form.contactType} onChange={(e) => setForm({ ...form, contactType: e.target.value })}>
+                      {CONTACT_TYPES.map((c) => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Contract Type *</label>
+                    <SearchableSelect options={contractOptions} value={form.contractID} isDisabled={readOnly} onChange={(v) => setForm({ ...form, contractID: v })} placeholder="Choisir…" />
+                  </div>
+                  <div className="form-group">
+                    <label>Commission Type *</label>
+                    <SearchableSelect options={commissionTypeOptions} value={form.commissionTypeID} isDisabled={readOnly}
+                      onChange={(v) => { setForm({ ...form, commissionTypeID: v, commissionRangeID: '' }); loadCommissionRanges(v); }} placeholder="Choisir…" />
+                  </div>
+                  <div className="form-group sm:col-span-2">
+                    <label>Commission Range *</label>
+                    <SearchableSelect options={commissionRangeOptions} value={form.commissionRangeID} isDisabled={readOnly || !form.commissionTypeID}
+                      onChange={(v) => setForm({ ...form, commissionRangeID: v })} placeholder="Choisir une tranche…" />
+                  </div>
+                  <div className="form-group"><label>Collection Ceiling</label><input type="number" disabled={readOnly} value={form.plafond} onChange={(e) => setForm({ ...form, plafond: e.target.value })} /></div>
+                  <div className="form-group"><label>Daily Collection Limit</label><input type="number" disabled={readOnly} value={form.collectDay} onChange={(e) => setForm({ ...form, collectDay: e.target.value })} /></div>
+                  <div className="form-group"><label>Monthly Collection Limit</label><input type="number" disabled={readOnly} value={form.collectMonth} onChange={(e) => setForm({ ...form, collectMonth: e.target.value })} /></div>
+                  <div className="form-group"><label>Daily Withdrawal Limit</label><input type="number" disabled={readOnly} value={form.retraitDay} onChange={(e) => setForm({ ...form, retraitDay: e.target.value })} /></div>
+                  <div className="form-group"><label>Monthly Withdrawal Limit</label><input type="number" disabled={readOnly} value={form.retraitMonth} onChange={(e) => setForm({ ...form, retraitMonth: e.target.value })} /></div>
+                  <div className="form-group"><label>Security Deposit (Caution)</label><input type="number" disabled={readOnly || mode === 'edit'} value={form.caution} onChange={(e) => setForm({ ...form, caution: e.target.value })} /></div>
+                  <div className="form-group"><label>Employment Date</label><input type="date" disabled={readOnly || mode === 'edit'} value={form.dateEmploi} onChange={(e) => setForm({ ...form, dateEmploi: e.target.value })} /></div>
+                  <div className="form-group"><label>Terminal Code</label><input disabled={readOnly || mode === 'edit'} value={form.codeTerminal} onChange={(e) => setForm({ ...form, codeTerminal: e.target.value })} /></div>
+                </div>
               </div>
-              <div className="form-group">
-                <label>Date d'embauche</label>
-                <input type="date" value={form.dateEmploi} onChange={(e) => setForm({ ...form, dateEmploi: e.target.value })} />
+
+              {/* Work Information */}
+              <div className="form-card">
+                <div className="form-card-title"><MapPin size={12} /> Work Information</div>
+                <div className="form-group"><label>Assigned Agency</label><input disabled value={form.agenceNom || selectedUser?.agenceNom || '—'} /></div>
+                <div className="form-group"><label>Assigned Department</label><input disabled value={form.departmentNom || selectedUser?.departmentNom || '—'} /></div>
+                <div className="form-group">
+                  <label>Supervisor</label>
+                  <SearchableSelect options={supervisorOptions} value={form.supervisorId} isDisabled={readOnly} onChange={(v) => setForm({ ...form, supervisorId: v })} placeholder="Optionnel…" />
+                </div>
               </div>
-            </div>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Type de contact</label>
-                <input value={form.contactType} onChange={(e) => setForm({ ...form, contactType: e.target.value })} />
+
+              {/* Status + Audit */}
+              <div className="form-card lg:col-span-3">
+                <div className="form-card-title"><BadgeCheck size={12} /> Status & Audit</div>
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+                  {mode === 'edit' ? (
+                    <div className="form-group">
+                      <label>Status</label>
+                      <select value={form.cdetat} onChange={(e) => setForm({ ...form, cdetat: e.target.value })}>
+                        {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                    </div>
+                  ) : mode === 'view' ? (
+                    <div className="form-group"><label>Status</label><StatusBadge status={form.cdetat} /></div>
+                  ) : (
+                    <div className="text-[11px] text-gray-400 sm:col-span-4">Statut initial : ACTIVE</div>
+                  )}
+                  {mode !== 'create' && (
+                    <>
+                      <div className="form-group"><label>Created By / Date</label><input disabled value={`${form.userCreate || ''} — ${form.createDate ? new Date(form.createDate).toLocaleDateString('fr-FR') : ''}`} /></div>
+                      <div className="form-group"><label>Validated By / Date</label><input disabled value={`${form.userValidation || '—'} — ${form.dateValidation ? new Date(form.dateValidation).toLocaleDateString('fr-FR') : '—'}`} /></div>
+                      <div className="form-group"><label>Last Modified By / Date</label><input disabled value={`${form.lastUserModif || '—'} — ${form.dateModification ? new Date(form.dateModification).toLocaleDateString('fr-FR') : '—'}`} /></div>
+                      <div className="form-group"><label>Last Supervisor / Date</label><input disabled value={`${form.lastUserSupervise || '—'} — ${form.lastDateSupervise ? new Date(form.lastDateSupervise).toLocaleDateString('fr-FR') : '—'}`} /></div>
+                    </>
+                  )}
+                </div>
               </div>
-              <div className="form-group">
-                <label>Code terminal</label>
-                <input value={form.codeTerminal} onChange={(e) => setForm({ ...form, codeTerminal: e.target.value })} />
-              </div>
-            </div>
-            <div className="form-group">
-              <label>Plafond (XAF)</label>
-              <input type="number" value={form.plafond} onChange={(e) => setForm({ ...form, plafond: Number(e.target.value) })} />
             </div>
           </form>
-        </Modal>
+        </WideModal>
       )}
     </div>
   );

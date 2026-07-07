@@ -7,6 +7,7 @@ export const AuthAPI = {
 
 export const CollectorAPI = {
   list: (search) => client.get('/api/collector', { params: { search } }),
+  availableUsers: () => client.get('/api/collector/available-users'),
   pending: () => client.get('/api/collector/pending'),
   create: (payload) => client.post('/api/collector', payload),
   update: (id, payload) => client.put(`/api/collector/${id}`, payload),
