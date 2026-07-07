@@ -120,6 +120,17 @@ export const PermissionAPI = {
   saveForRole: (roleId, permissions) => client.post(`/api/permissions/role/${roleId}`, { permissions }),
 };
 
+export const ContractTypeAPI = {
+  list: () => client.get('/api/contracttype'),
+  active: () => client.get('/api/contracttype/active'),
+  create: (payload) => client.post('/api/contracttype', payload),
+  update: (id, payload) => client.put(`/api/contracttype/${id}`, payload),
+  remove: (id) => client.delete(`/api/contracttype/${id}`),
+  pending: () => client.get('/api/contracttype/pending'),
+  approve: (pendingId) => client.post(`/api/contracttype/pending/${pendingId}/approve`),
+  reject: (pendingId, reason) => client.post(`/api/contracttype/pending/${pendingId}/reject`, { reason }),
+};
+
 export const GeoAPI = {
   countries: () => client.get('/api/geo/countries'),
   cities: (paysId) => client.get('/api/geo/cities', { params: { paysId } }),

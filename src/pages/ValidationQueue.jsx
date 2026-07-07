@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import DataTable from '../components/DataTable';
-import { CollectorAPI, ClientAPI, CommissionAPI, AgencyAPI, AccountAPI, ContractAPI, IMFAPI, UserAPI, RoleAPI, DepartmentAPI } from '../api/endpoints';
+import { CollectorAPI, ClientAPI, CommissionAPI, AgencyAPI, AccountAPI, ContractAPI, IMFAPI, UserAPI, RoleAPI, DepartmentAPI, ContractTypeAPI } from '../api/endpoints';
 
 export default function ValidationQueue() {
   const [module, setModule] = useState('collectors');
@@ -18,6 +18,7 @@ export default function ValidationQueue() {
     users: () => UserAPI.pending(),
     roles: () => RoleAPI.pending(),
     departments: () => DepartmentAPI.pending(),
+    contractTypes: () => ContractTypeAPI.pending(),
   };
 
   const approvers = {
@@ -31,6 +32,7 @@ export default function ValidationQueue() {
     users: (id) => UserAPI.approve(id),
     roles: (id) => RoleAPI.approve(id),
     departments: (id) => DepartmentAPI.approve(id),
+    contractTypes: (id) => ContractTypeAPI.approve(id),
   };
 
   const rejecters = {
@@ -44,6 +46,7 @@ export default function ValidationQueue() {
     users: (id, reason) => UserAPI.reject(id, reason),
     roles: (id, reason) => RoleAPI.reject(id, reason),
     departments: (id, reason) => DepartmentAPI.reject(id, reason),
+    contractTypes: (id, reason) => ContractTypeAPI.reject(id, reason),
   };
 
   const load = async () => {
@@ -94,7 +97,7 @@ export default function ValidationQueue() {
   const MODULES = [
     ['collectors', 'Collecteurs'], ['clients', 'Clients'], ['commissionRanges', 'Commission Ranges'],
     ['agencies', 'Agences'], ['accounts', 'Comptes'], ['contracts', 'Contrats'],
-    ['imf', 'IMF'], ['users', 'Utilisateurs'], ['roles', 'Rôles'], ['departments', 'Départements'],
+    ['imf', 'IMF'], ['users', 'Utilisateurs'], ['roles', 'Rôles'], ['departments', 'Départements'], ['contractTypes', 'Types de Contrat'],
   ];
 
   return (
