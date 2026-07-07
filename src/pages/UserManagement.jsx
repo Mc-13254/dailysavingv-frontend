@@ -4,7 +4,7 @@ import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 import StatusBadge from '../components/StatusBadge';
 import ExportDropdown from '../components/ExportDropdown';
-import { UserAPI } from '../api/endpoints';
+import { UserAPI, RoleAPI } from '../api/endpoints';
 
 const emptyForm = { username: '', email: '', phone: '', adresse: '', cni: '', roleID: '', password: '' };
 const emptyEditForm = { email: '', phone: '', adresse: '', cni: '', roleID: '', statut: 'ACTIVE', newPassword: '' };
@@ -19,6 +19,7 @@ export default function UserManagement() {
   const [editForm, setEditForm] = useState(emptyEditForm);
   const [search, setSearch] = useState('');
   const [notice, setNotice] = useState('');
+  const [roles, setRoles] = useState([]);
 
   const load = async () => {
     setLoading(true);
@@ -29,6 +30,7 @@ export default function UserManagement() {
     finally { setLoading(false); }
   };
   useEffect(() => { load(); }, []);
+  useEffect(() => { RoleAPI.active().then(({ data }) => setRoles(data)).catch(() => {}); }, []);
 
   const filtered = rows
     .filter(r => tab === 'validated' ? r.validationStatus === 'VALIDATED' : r.validationStatus === 'PENDING')
@@ -127,9 +129,7 @@ export default function UserManagement() {
                   <label>Rôle</label>
                   <select required value={form.roleID} onChange={(e) => setForm({ ...form, roleID: Number(e.target.value) })}>
                     <option value="">—</option>
-                    <option value="1">ADMIN</option>
-                    <option value="2">SUPERVISOR</option>
-                    <option value="3">COLLECTOR</option>
+                    {roles.map((r) => <option key={r.roleID} value={r.roleID}>{r.libelle}</option>)}
                   </select>
                 </div>
               </div>

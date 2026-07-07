@@ -93,6 +93,17 @@ export const IMFAPI = {
   reject: (pendingId, reason) => client.post(`/api/imf/pending/${pendingId}/reject`, { reason }),
 };
 
+export const RoleAPI = {
+  list: () => client.get('/api/roles'),
+  active: () => client.get('/api/roles/active'),
+  create: (payload) => client.post('/api/roles', payload),
+  update: (id, payload) => client.put(`/api/roles/${id}`, payload),
+  remove: (id) => client.delete(`/api/roles/${id}`),
+  pending: () => client.get('/api/roles/pending'),
+  approve: (pendingId) => client.post(`/api/roles/pending/${pendingId}/approve`),
+  reject: (pendingId, reason) => client.post(`/api/roles/pending/${pendingId}/reject`, { reason }),
+};
+
 export const GeoAPI = {
   countries: () => client.get('/api/geo/countries'),
   cities: (paysId) => client.get('/api/geo/cities', { params: { paysId } }),

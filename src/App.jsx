@@ -11,6 +11,7 @@ import AccountManagement from './pages/AccountManagement';
 import ContractManagement from './pages/ContractManagement';
 import CommissionManagement from './pages/CommissionManagement';
 import IMFManagement from './pages/IMFManagement';
+import RoleManagement from './pages/RoleManagement';
 import ValidationQueue from './pages/ValidationQueue';
 import TransactionManagement from './pages/TransactionManagement';
 import ComingSoon from './pages/ComingSoon';
@@ -32,7 +33,7 @@ function AppRoutes() {
         <Route path="imf" element={<IMFManagement />} />
         <Route path="agencies" element={<AgencyManagement />} />
         <Route path="users" element={<UserManagement />} />
-        <Route path="roles" element={<ComingSoon title="Rôles" description="Gestion fine des rôles (au-delà d'ADMIN/SUPERVISOR/COLLECTOR) — à venir." />} />
+        <Route path="roles" element={<RoleManagement />} />
         <Route path="habilitations" element={<ComingSoon title="Habilitations / Permissions" description="Attribution de permissions granulaires par module et par rôle — à venir." />} />
 
         {/* Paramètres Métier */}

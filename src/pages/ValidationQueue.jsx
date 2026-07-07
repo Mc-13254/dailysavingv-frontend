@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import DataTable from '../components/DataTable';
-import { CollectorAPI, ClientAPI, CommissionAPI, AgencyAPI, AccountAPI, ContractAPI, IMFAPI, UserAPI } from '../api/endpoints';
+import { CollectorAPI, ClientAPI, CommissionAPI, AgencyAPI, AccountAPI, ContractAPI, IMFAPI, UserAPI, RoleAPI } from '../api/endpoints';
 
 export default function ValidationQueue() {
   const [module, setModule] = useState('collectors');
@@ -16,6 +16,7 @@ export default function ValidationQueue() {
     contracts: () => ContractAPI.pending(),
     imf: () => IMFAPI.pending(),
     users: () => UserAPI.pending(),
+    roles: () => RoleAPI.pending(),
   };
 
   const approvers = {
@@ -27,6 +28,7 @@ export default function ValidationQueue() {
     contracts: (id) => ContractAPI.approve(id),
     imf: (id) => IMFAPI.approve(id),
     users: (id) => UserAPI.approve(id),
+    roles: (id) => RoleAPI.approve(id),
   };
 
   const rejecters = {
@@ -38,6 +40,7 @@ export default function ValidationQueue() {
     contracts: (id, reason) => ContractAPI.reject(id, reason),
     imf: (id, reason) => IMFAPI.reject(id, reason),
     users: (id, reason) => UserAPI.reject(id, reason),
+    roles: (id, reason) => RoleAPI.reject(id, reason),
   };
 
   const load = async () => {
@@ -51,11 +54,22 @@ export default function ValidationQueue() {
 
   useEffect(() => { load(); }, [module]);
 
-  const handleApprove = async (id) => { await approvers[module](id); load(); };
+  const handleApprove = async (id) => {
+    try {
+      await approvers[module](id);
+      load();
+    } catch (err) {
+      alert(err.response?.data?.message || "Erreur lors de la validation.");
+    }
+  };
   const handleReject = async (id) => {
     const reason = window.prompt('Motif du rejet ?') || 'Non spécifié';
-    await rejecters[module](id, reason);
-    load();
+    try {
+      await rejecters[module](id, reason);
+      load();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Erreur lors du rejet.');
+    }
   };
 
   const columns = [
@@ -77,7 +91,7 @@ export default function ValidationQueue() {
   const MODULES = [
     ['collectors', 'Collecteurs'], ['clients', 'Clients'], ['commissionRanges', 'Commission Ranges'],
     ['agencies', 'Agences'], ['accounts', 'Comptes'], ['contracts', 'Contrats'],
-    ['imf', 'IMF'], ['users', 'Utilisateurs'],
+    ['imf', 'IMF'], ['users', 'Utilisateurs'], ['roles', 'Rôles'],
   ];
 
   return (
