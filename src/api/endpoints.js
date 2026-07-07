@@ -114,6 +114,12 @@ export const DepartmentAPI = {
   reject: (pendingId, reason) => client.post(`/api/department/pending/${pendingId}/reject`, { reason }),
 };
 
+export const PermissionAPI = {
+  all: () => client.get('/api/permissions'),
+  forRole: (roleId) => client.get(`/api/permissions/role/${roleId}`),
+  saveForRole: (roleId, permissions) => client.post(`/api/permissions/role/${roleId}`, { permissions }),
+};
+
 export const GeoAPI = {
   countries: () => client.get('/api/geo/countries'),
   cities: (paysId) => client.get('/api/geo/cities', { params: { paysId } }),

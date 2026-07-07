@@ -13,6 +13,7 @@ import CommissionManagement from './pages/CommissionManagement';
 import IMFManagement from './pages/IMFManagement';
 import RoleManagement from './pages/RoleManagement';
 import DepartmentManagement from './pages/DepartmentManagement';
+import PermissionManagement from './pages/PermissionManagement';
 import ValidationQueue from './pages/ValidationQueue';
 import TransactionManagement from './pages/TransactionManagement';
 import ComingSoon from './pages/ComingSoon';
@@ -36,7 +37,7 @@ function AppRoutes() {
         <Route path="users" element={<UserManagement />} />
         <Route path="roles" element={<RoleManagement />} />
         <Route path="departments" element={<DepartmentManagement />} />
-        <Route path="habilitations" element={<ComingSoon title="Habilitations / Permissions" description="Attribution de permissions granulaires par module et par rôle — à venir." />} />
+        <Route path="habilitations" element={<PermissionManagement />} />
 
         {/* Paramètres Métier */}
         <Route path="contract-types" element={<ComingSoon title="Types de contrat" description="Catalogue des types de contrats proposés (Épargne Journalière, Premium...) — à venir." />} />

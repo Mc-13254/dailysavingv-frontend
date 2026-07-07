@@ -22,7 +22,7 @@ const NAV_GROUPS = [
       { to: '/users', label: 'Utilisateurs', icon: Users },
       { to: '/roles', label: 'Rôles', icon: ShieldCheck },
       { to: '/departments', label: 'Départements', icon: Building2 },
-      { to: '/habilitations', label: 'Habilitations / Permissions', icon: KeyRound },
+      { to: '/habilitations', label: 'Permissions', icon: KeyRound },
     ]
   },
   {
