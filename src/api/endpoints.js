@@ -146,6 +146,33 @@ export const GeoAPI = {
   timezones: () => client.get('/api/geo/timezones'),
 };
 
+export const ZoneAPI = {
+  list: (search) => client.get('/api/zone', { params: { search } }),
+  get: (id) => client.get(`/api/zone/${id}`),
+  clients: (id) => client.get(`/api/zone/${id}/clients`),
+  create: (payload) => client.post('/api/zone', payload),
+  update: (id, payload) => client.put(`/api/zone/${id}`, payload),
+  remove: (id) => client.delete(`/api/zone/${id}`),
+};
+
+export const CollectorZoneAssignmentAPI = {
+  getForCollector: (collectorId) => client.get(`/api/collector-zone-assignment/${collectorId}`),
+  assign: (payload) => client.post('/api/collector-zone-assignment/assign', payload),
+  updateZones: (collectorId, payload) => client.put(`/api/collector-zone-assignment/${collectorId}/zones`, payload),
+  transferClients: (payload) => client.post('/api/collector-zone-assignment/transfer-clients', payload),
+  history: (params) => client.get('/api/collector-zone-assignment/history', { params }),
+};
+
+export const CollectorPerformanceAPI = {
+  kpis: (filter) => client.get('/api/collector-performance/kpis', { params: filter }),
+  table: (filter) => client.get('/api/collector-performance', { params: filter }),
+  detail: (collectorId, filter) => client.get(`/api/collector-performance/${collectorId}`, { params: filter }),
+  leaderboard: (filter, top = 10) => client.get('/api/collector-performance/leaderboard', { params: { ...filter, top } }),
+  bottomPerformers: (filter) => client.get('/api/collector-performance/bottom-performers', { params: filter }),
+  alerts: () => client.get('/api/collector-performance/alerts'),
+  charts: (type, filter) => client.get('/api/collector-performance/charts', { params: { type, ...filter } }),
+};
+
 export const UserAPI = {
   list: () => client.get('/api/users'),
   create: (payload) => client.post('/api/users', payload),

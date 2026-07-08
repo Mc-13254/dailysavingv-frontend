@@ -106,3 +106,56 @@ table.data-table { @apply table-auto min-w-full w-full border-collapse text-left
 .kpi-value.accent { @apply text-green-600; }
 
 .empty-state { @apply text-center py-10 text-gray-400 normal-case; }
+
+/* ---------- Collector Assignment / Performance modules (world map, alerts) ---------- */
+.world-map-wrapper { @apply relative w-full rounded-md overflow-hidden border border-gray-200; }
+.map-search-box { @apply absolute z-[1000] top-2.5 left-12 w-72; }
+.map-search-box input { @apply shadow-md; }
+.map-search-results {
+  @apply list-none m-0 mt-1 p-1 bg-white rounded-md shadow-lg max-h-56 overflow-y-auto text-xs normal-case;
+}
+.map-search-results li { @apply px-2 py-1.5 cursor-pointer rounded hover:bg-gray-50; }
+
+.date-range-tabs { @apply flex gap-1 bg-gray-100 p-1 rounded-md flex-wrap; }
+.tab { @apply px-3 py-1 text-xs font-semibold rounded text-gray-600 border-none bg-transparent cursor-pointer; }
+.tab.active { @apply bg-gradient-to-r from-brand-blue to-brand-green text-white; }
+
+.alert-list { @apply list-none m-0 p-0 flex flex-col gap-2.5 mt-2; }
+.alert-item { @apply flex gap-2 items-start text-xs normal-case; }
+.alert-item p { @apply m-0 mt-0.5 text-gray-500; }
+.alert-dot { @apply w-2 h-2 rounded-full mt-1.5 flex-shrink-0; }
+.alert-warning .alert-dot { @apply bg-yellow-500; }
+.alert-critical .alert-dot { @apply bg-red-500; }
+.alert-info .alert-dot { @apply bg-brand-blue; }
+
+/* ---------- World map (Collector Assignment / Performance) ---------- */
+.world-map-wrapper { position: relative; width: 100%; border-radius: 8px; overflow: hidden; }
+.map-search-box { position: absolute; top: 10px; left: 50px; z-index: 1000; width: 320px; }
+.map-search-box .search-input { @apply shadow-md; background: white; }
+.map-search-results {
+  list-style: none; margin: 4px 0 0; padding: 4px; background: white; border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15); max-height: 220px; overflow-y: auto; text-transform: none;
+}
+.map-search-results li { @apply px-2 py-1.5 text-xs cursor-pointer rounded normal-case; }
+.map-search-results li:hover { @apply bg-gray-100; }
+
+/* ---------- Alerts list (Performance dashboard) ---------- */
+.alert-list { @apply flex flex-col gap-2.5 normal-case; }
+.alert-item { @apply flex gap-2 items-start text-xs; }
+.alert-item p { @apply m-0 mt-0.5 text-gray-500; }
+.alert-dot { @apply w-2 h-2 rounded-full mt-1 flex-shrink-0; }
+.alert-warning .alert-dot { @apply bg-yellow-500; }
+.alert-critical .alert-dot { @apply bg-red-500; }
+.alert-info .alert-dot { @apply bg-brand-blue; }
+
+/* ---------- Mini avatar (leaderboard / performance table) ---------- */
+.mini-avatar { @apply w-7 h-7 rounded-full object-cover; }
+.mini-avatar.placeholder {
+  @apply flex items-center justify-center text-white font-bold text-xs;
+  background: linear-gradient(135deg, #1E90FF, #11fc82);
+}
+
+/* ---------- Date range tabs ---------- */
+.date-range-tabs { @apply flex gap-1 bg-gray-200 rounded-md p-0.5 flex-wrap; }
+.date-range-tabs .tab { @apply px-3 py-1 text-xs rounded-md text-gray-700 font-medium normal-case; }
+.date-range-tabs .tab.active { @apply bg-gradient-to-r from-brand-blue to-brand-green text-white; }

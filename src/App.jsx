@@ -6,6 +6,8 @@ import Dashboard from './pages/Dashboard';
 import AgencyManagement from './pages/AgencyManagement';
 import UserManagement from './pages/UserManagement';
 import CollectorManagement from './pages/CollectorManagement';
+import CollectorAssignmentManagement from './pages/CollectorAssignmentManagement';
+import CollectorPerformanceManagement from './pages/CollectorPerformanceManagement';
 import ClientManagement from './pages/ClientManagement';
 import AccountManagement from './pages/AccountManagement';
 import ContractManagement from './pages/ContractManagement';
@@ -50,8 +52,8 @@ function AppRoutes() {
 
         {/* Gestion des Collecteurs */}
         <Route path="collectors" element={<CollectorManagement />} />
-        <Route path="collector-assignment" element={<ComingSoon title="Affectation des collecteurs" description="Réaffectation en masse de clients entre collecteurs — à venir." />} />
-        <Route path="collector-performance" element={<ComingSoon title="Performance des collecteurs" description="Statistiques de collecte et de commission par collecteur — à venir." />} />
+        <Route path="collector-assignment" element={<CollectorAssignmentManagement />} />
+        <Route path="collector-performance" element={<CollectorPerformanceManagement />} />
 
         {/* Gestion des Clients */}
         <Route path="prospects" element={<ComingSoon title="Prospects" description="Suivi des prospects avant conversion en client — à venir." />} />
