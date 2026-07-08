@@ -166,27 +166,29 @@ export default function CollectorPerformanceManagement() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-        <div className="panel">
+        <div className="panel min-w-0">
           <div className="panel-title" style={{ marginBottom: 8 }}>Top 10 Collecteurs</div>
-          <table className="data-table">
-            <thead><tr><th>#</th><th>Collecteur</th><th>Collectes</th><th>Commission</th><th>Objectif</th><th>Réussite</th></tr></thead>
-            <tbody>
-              {leaderboard.length === 0 && <tr><td colSpan={6} className="empty-state">Aucune donnée.</td></tr>}
-              {leaderboard.map((e) => (
-                <tr key={e.rank}>
-                  <td className="font-bold text-brand-blue">{e.rank}</td>
-                  <td>{e.collectorName}</td>
-                  <td>{e.collections}</td>
-                  <td>{fmt(e.commission)}</td>
-                  <td>{e.achievementPercent}%</td>
-                  <td>{e.successRatePercent}%</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-wrap">
+            <table className="data-table">
+              <thead><tr><th>#</th><th>Collecteur</th><th>Collectes</th><th>Commission</th><th>Objectif</th><th>Réussite</th></tr></thead>
+              <tbody>
+                {leaderboard.length === 0 && <tr><td colSpan={6} className="empty-state">Aucune donnée.</td></tr>}
+                {leaderboard.map((e) => (
+                  <tr key={e.rank}>
+                    <td className="font-bold text-brand-blue">{e.rank}</td>
+                    <td>{e.collectorName}</td>
+                    <td>{e.collections}</td>
+                    <td>{fmt(e.commission)}</td>
+                    <td>{e.achievementPercent}%</td>
+                    <td>{e.successRatePercent}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <div className="panel">
+        <div className="panel min-w-0">
           <div className="panel-title" style={{ marginBottom: 8 }}>Collecteurs à surveiller</div>
           {bottomPerformers.length === 0 && <div className="empty-state py-6">Aucun collecteur en difficulté.</div>}
           <ul className="alert-list">
@@ -225,20 +227,22 @@ export default function CollectorPerformanceManagement() {
                 <div className="text-[11px] text-gray-500 normal-case">Manquées/annulées ce mois: {detail.missedCollections}</div>
               </div>
               <div className="form-card sm:col-span-3"><div className="form-card-title">Clients</div>
-                <table className="data-table">
-                  <thead><tr><th>Client</th><th>Dernière collecte</th><th>Montant</th><th>Épargne</th><th>Statut</th></tr></thead>
-                  <tbody>
-                    {detail.clients.map((c) => (
-                      <tr key={c.clientID}>
-                        <td>{c.clientName}</td>
-                        <td>{c.lastCollectionDate ? new Date(c.lastCollectionDate).toLocaleDateString('fr-FR') : '—'}</td>
-                        <td>{c.lastCollectionAmount ? fmt(c.lastCollectionAmount) : '—'}</td>
-                        <td>{fmt(c.totalSavings)}</td>
-                        <td><StatusBadge status={c.status} /></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div className="table-wrap">
+                  <table className="data-table">
+                    <thead><tr><th>Client</th><th>Dernière collecte</th><th>Montant</th><th>Épargne</th><th>Statut</th></tr></thead>
+                    <tbody>
+                      {detail.clients.map((c) => (
+                        <tr key={c.clientID}>
+                          <td>{c.clientName}</td>
+                          <td>{c.lastCollectionDate ? new Date(c.lastCollectionDate).toLocaleDateString('fr-FR') : '—'}</td>
+                          <td>{c.lastCollectionAmount ? fmt(c.lastCollectionAmount) : '—'}</td>
+                          <td>{fmt(c.totalSavings)}</td>
+                          <td><StatusBadge status={c.status} /></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}

@@ -150,6 +150,7 @@ export const ZoneAPI = {
   list: (search) => client.get('/api/zone', { params: { search } }),
   get: (id) => client.get(`/api/zone/${id}`),
   clients: (id) => client.get(`/api/zone/${id}/clients`),
+  districts: (paysId) => client.get('/api/zone/districts', { params: { paysId } }),
   create: (payload) => client.post('/api/zone', payload),
   update: (id, payload) => client.put(`/api/zone/${id}`, payload),
   remove: (id) => client.delete(`/api/zone/${id}`),

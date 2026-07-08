@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import CreatableSelect from 'react-select/creatable';
 import { MapPin, Users, Layers, History, Plus } from 'lucide-react';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
@@ -7,16 +8,36 @@ import StatusBadge from '../components/StatusBadge';
 import ExportDropdown from '../components/ExportDropdown';
 import SearchableSelect from '../components/SearchableSelect';
 import WorldMap from '../components/WorldMap';
-import { ZoneAPI, CollectorAPI, CollectorZoneAssignmentAPI } from '../api/endpoints';
+import { ZoneAPI, CollectorAPI, CollectorZoneAssignmentAPI, GeoAPI } from '../api/endpoints';
 
 const emptyZoneForm = {
-  libelle: '', description: '', district: '', neighborhood: '', village: '',
+  paysID: '', libelle: '', description: '', district: '', neighborhood: '', village: '',
   latitude: null, longitude: null, shapeType: 'Point', polygonCoordinates: null, radiusMeters: null,
+};
+
+const creatableStyles = {
+  control: (base, state) => ({
+    ...base, minHeight: 34, fontSize: 12.5, borderRadius: 6,
+    borderColor: state.isFocused ? '#1E90FF' : '#d1d5db',
+    boxShadow: state.isFocused ? '0 0 0 1px #1E90FF' : 'none',
+    '&:hover': { borderColor: '#1E90FF' },
+  }),
+  valueContainer: (base) => ({ ...base, padding: '0 8px' }),
+  input: (base) => ({ ...base, margin: 0, padding: 0 }),
+  indicatorsContainer: (base) => ({ ...base, height: 34 }),
+  menu: (base) => ({ ...base, fontSize: 12.5, zIndex: 2100 }),
+  option: (base, state) => ({
+    ...base,
+    backgroundColor: state.isSelected ? '#1E90FF' : state.isFocused ? '#eff6ff' : 'white',
+    color: state.isSelected ? 'white' : '#111827',
+  }),
+  placeholder: (base) => ({ ...base, color: '#9ca3af' }),
 };
 
 export default function CollectorAssignmentManagement() {
   const [zones, setZones] = useState([]);
   const [collectors, setCollectors] = useState([]);
+  const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [zoneSearch, setZoneSearch] = useState('');
 
@@ -24,10 +45,12 @@ export default function CollectorAssignmentManagement() {
   const [zoneClients, setZoneClients] = useState([]);
   const [selectedCollectorId, setSelectedCollectorId] = useState('');
   const [selectedClientIds, setSelectedClientIds] = useState(new Set());
+  const [assigning, setAssigning] = useState(false);
 
   const [showZoneModal, setShowZoneModal] = useState(false);
   const [zoneForm, setZoneForm] = useState(emptyZoneForm);
   const [pendingShape, setPendingShape] = useState(null);
+  const [districtOptions, setDistrictOptions] = useState([]);
 
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState([]);
@@ -47,9 +70,20 @@ export default function CollectorAssignmentManagement() {
   useEffect(() => { loadZones(); }, [loadZones]);
   useEffect(() => {
     CollectorAPI.list().then(({ data }) => setCollectors(data)).catch(() => {});
+    GeoAPI.countries().then(({ data }) => setCountries(data)).catch(() => setCountries([]));
   }, []);
 
+  // Refresh the Quartier suggestion list whenever the selected country changes,
+  // so the admin picks from districts already used in that country instead of
+  // having to remember/retype names — but can still type a brand-new one.
+  useEffect(() => {
+    ZoneAPI.districts(zoneForm.paysID || undefined)
+      .then(({ data }) => setDistrictOptions(data.map((d) => ({ value: d, label: d }))))
+      .catch(() => setDistrictOptions([]));
+  }, [zoneForm.paysID]);
+
   const collectorOptions = collectors.map((c) => ({ value: c.collectorID, label: `${c.collectorID} — ${c.name} ${c.surname || ''}` }));
+  const countryOptions = useMemo(() => countries.map((c) => ({ value: c.paysID, label: c.nom })), [countries]);
 
   const openZone = async (zone) => {
     setSelectedZone(zone);
@@ -71,25 +105,40 @@ export default function CollectorAssignmentManagement() {
   const handleAssign = async () => {
     setError('');
     if (!selectedCollectorId || !selectedZone) { setError('Sélectionnez un collecteur et une zone.'); return; }
+
+    // "Zone entière" = no specific client checked → assign every client
+    // currently in the zone, not just the zone-collector link on its own.
+    const clientIdsToAssign = selectedClientIds.size > 0
+      ? Array.from(selectedClientIds)
+      : zoneClients.map((c) => c.clientID);
+
+    setAssigning(true);
     try {
       await CollectorZoneAssignmentAPI.assign({
         collectorID: selectedCollectorId,
         zoneCollecteIds: [selectedZone.zoneCollecteID],
-        clientIds: Array.from(selectedClientIds),
+        clientIds: clientIdsToAssign,
       });
-      setNotice('Affectation effectuée avec succès.');
+      setNotice(
+        selectedClientIds.size > 0
+          ? `${clientIdsToAssign.length} client(s) affecté(s) avec succès.`
+          : `Zone entière affectée : ${clientIdsToAssign.length} client(s) mis à jour.`
+      );
       await loadZones();
       const { data } = await ZoneAPI.clients(selectedZone.zoneCollecteID);
       setZoneClients(data);
       setSelectedClientIds(new Set());
     } catch (e) {
       setError(e?.response?.data?.message || "Échec de l'affectation.");
+    } finally {
+      setAssigning(false);
     }
   };
 
   const openCreateZone = () => {
     setZoneForm(emptyZoneForm);
     setPendingShape(null);
+    setError('');
     setShowZoneModal(true);
   };
 
@@ -111,9 +160,11 @@ export default function CollectorAssignmentManagement() {
 
   const handleSaveZone = async () => {
     setError('');
-    if (!zoneForm.libelle) { setError('Le nom de la zone est requis.'); return; }
+    if (!zoneForm.paysID) { setError('Sélectionnez un pays.'); return; }
+    if (!zoneForm.libelle) { setError('Le nom de la zone de collecte est requis.'); return; }
     try {
       await ZoneAPI.create({
+        paysID: Number(zoneForm.paysID),
         libelle: zoneForm.libelle,
         description: zoneForm.description || null,
         villeID: null,
@@ -129,8 +180,8 @@ export default function CollectorAssignmentManagement() {
       setShowZoneModal(false);
       setNotice('Zone créée avec succès.');
       await loadZones();
-    } catch {
-      setError('Échec de la création de la zone.');
+    } catch (e) {
+      setError(e?.response?.data?.message || 'Échec de la création de la zone.');
     }
   };
 
@@ -240,8 +291,9 @@ export default function CollectorAssignmentManagement() {
               <label>Affecter le collecteur</label>
               <SearchableSelect options={collectorOptions} value={selectedCollectorId} onChange={setSelectedCollectorId} placeholder="Choisir un collecteur…" />
             </div>
-            <button className="btn btn-primary" disabled={selectedClientIds.size === 0 && !selectedCollectorId} onClick={handleAssign}>
-              <Users size={14} /> Affecter {selectedClientIds.size > 0 ? `(${selectedClientIds.size} clients)` : '(zone entière)'}
+            <button className="btn btn-primary" disabled={!selectedCollectorId || assigning} onClick={handleAssign}>
+              <Users size={14} />
+              {assigning ? 'Affectation…' : `Affecter ${selectedClientIds.size > 0 ? `(${selectedClientIds.size} clients)` : '(zone entière)'}`}
             </button>
           </div>
 
@@ -257,18 +309,45 @@ export default function CollectorAssignmentManagement() {
           </>
         }>
           {error && <div className="error-banner">{error}</div>}
+
           <div className="form-group">
-            <label>Nom de la zone *</label>
-            <input value={zoneForm.libelle} onChange={(e) => setZoneForm({ ...zoneForm, libelle: e.target.value })} placeholder="ex: Bonamoussadi Nord" />
+            <label>Pays *</label>
+            <SearchableSelect
+              options={countryOptions}
+              value={zoneForm.paysID}
+              onChange={(v) => setZoneForm({ ...zoneForm, paysID: v })}
+              placeholder="Sélectionner un pays…"
+            />
           </div>
+
+          <div className="form-group">
+            <label>Zone de collecte *</label>
+            <input value={zoneForm.libelle} onChange={(e) => setZoneForm({ ...zoneForm, libelle: e.target.value })} placeholder="ex: Zone 5 — Hydrom" />
+          </div>
+
           <div className="form-group">
             <label>Description</label>
             <textarea value={zoneForm.description} onChange={(e) => setZoneForm({ ...zoneForm, description: e.target.value })} placeholder="ex: Zone Collecteur A" />
           </div>
+
           <div className="form-row">
-            <div className="form-group"><label>Quartier</label><input value={zoneForm.district} onChange={(e) => setZoneForm({ ...zoneForm, district: e.target.value })} /></div>
+            <div className="form-group">
+              <label>Quartier</label>
+              <CreatableSelect
+                options={districtOptions}
+                value={zoneForm.district ? { value: zoneForm.district, label: zoneForm.district } : null}
+                onChange={(opt) => setZoneForm({ ...zoneForm, district: opt ? opt.value : '' })}
+                onCreateOption={(val) => setZoneForm({ ...zoneForm, district: val })}
+                styles={creatableStyles}
+                isClearable
+                placeholder="Choisir un quartier existant ou en saisir un nouveau…"
+                formatCreateLabel={(v) => `Créer le quartier "${v}"`}
+                noOptionsMessage={() => 'Aucun quartier existant — tapez pour en créer un'}
+              />
+            </div>
             <div className="form-group"><label>Village</label><input value={zoneForm.village} onChange={(e) => setZoneForm({ ...zoneForm, village: e.target.value })} /></div>
           </div>
+
           <p className="text-[11px] text-gray-500 normal-case">
             Astuce : recherchez un lieu ou tracez une forme (polygone/cercle/rectangle) sur la carte avant d'ouvrir cette fenêtre —
             la forme est déjà capturée : <strong>{zoneForm.shapeType}</strong>{pendingShape ? ' ✓' : ''}.
