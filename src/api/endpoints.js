@@ -3,6 +3,7 @@ import client from './client';
 export const AuthAPI = {
   login: (username, password) => client.post('/api/auth/login', { username, password }),
   logout: (refreshToken) => client.post('/api/auth/logout', { refreshToken }),
+  verifyPassword: (password) => client.post('/api/auth/verify-password', { password }),
 };
 
 export const CollectorAPI = {
@@ -51,6 +52,16 @@ export const TransactionAPI = {
   list: (params) => client.get('/api/transaction', { params }),
   create: (payload) => client.post('/api/transaction', payload),
   dashboardSummary: () => client.get('/api/transaction/dashboard-summary'),
+};
+
+export const CashSessionAPI = {
+  current: () => client.get('/api/cashsession/current'),
+  open: (payload) => client.post('/api/cashsession/open', payload),
+  close: (payload) => client.post('/api/cashsession/close', payload),
+  dashboard: () => client.get('/api/cashsession/dashboard'),
+  history: (params) => client.get('/api/cashsession/history', { params }),
+  getCalendar: (agenceId) => client.get('/api/cashsession/business-calendar', { params: { agenceId } }),
+  saveCalendar: (agenceId, payload) => client.put('/api/cashsession/business-calendar', payload, { params: { agenceId } }),
 };
 
 // Agency / Account / Contract / IMF / Users: same REST shape as Collector/Client

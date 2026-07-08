@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, ChevronDown, ChevronUp, User, Building2, Home, BadgeCheck,
   Clock, Settings, Flag, Landmark, Users, ShieldCheck, KeyRound, FileSignature,
-  Percent, Layers, Hash, UserCog, UserPlus, TrendingUp, UserSearch, Wallet,
+  Percent, Layers, Hash, UserCog, UserPlus, TrendingUp, Wallet,
   FileText, CalendarCheck, ArrowDownCircle, ArrowUpCircle, CheckCircle2,
   BarChart3, LogIn, History, ScrollText, ShieldAlert, SlidersHorizontal,
   ArrowLeftRight,
@@ -42,14 +42,14 @@ const NAV_GROUPS = [
   },
   {
     label: 'Gestion des Clients', icon: Users, base: '/clients-mgmt', items: [
-      { to: '/prospects', label: 'Prospects', icon: UserSearch },
       { to: '/clients', label: 'Clients', icon: User },
-      { to: '/accounts', label: 'Comptes', icon: Wallet },
       { to: '/contracts', label: 'Contrats des clients', icon: FileText },
+      { to: '/accounts', label: 'Comptes', icon: Wallet },
     ]
   },
   {
     label: 'Opérations', icon: ArrowLeftRight, base: '/operations', items: [
+      { to: '/cash-session', label: 'Session de caisse', icon: Clock },
       { to: '/daily-collections', label: 'Collectes journalières', icon: CalendarCheck },
       { to: '/deposits', label: 'Dépôts', icon: ArrowDownCircle },
       { to: '/withdrawals', label: 'Retraits', icon: ArrowUpCircle },

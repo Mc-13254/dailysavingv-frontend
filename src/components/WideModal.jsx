@@ -2,7 +2,7 @@ export default function WideModal({ title, onClose, children, footer }) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[2000] p-4 normal-case" onClick={onClose}>
       <div
-        className="bg-white rounded-xl shadow-2xl w-[92vw] max-w-[1400px] max-h-[92vh] flex flex-col overflow-hidden"
+        className="bg-white rounded-xl shadow-2xl w-[96vw] max-w-[1680px] h-[94vh] max-h-[94vh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Sticky header */}

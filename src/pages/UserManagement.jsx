@@ -25,7 +25,7 @@ const emptyForm = {
 
 // mode: 'create' | 'edit' | 'view' | null
 export default function UserManagement() {
-  const [tab, setTab] = useState('validated');
+  // (validation tab removed — all approvals now happen in the Validation Queue)
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -66,7 +66,6 @@ export default function UserManagement() {
   const cityOptions = cities.map((c) => ({ value: c.villeID, label: c.nom }));
 
   const filtered = rows
-    .filter((r) => tab === 'validated' ? r.validationStatus === 'VALIDATED' : r.validationStatus === 'PENDING')
     .filter((r) => {
       if (!search) return true;
       const term = search.toLowerCase();
@@ -201,10 +200,6 @@ export default function UserManagement() {
 
       <div className="toolbar">
         <input className="search-input" placeholder="Search users (code, nom, email, tél, agence, rôle)…" value={search} onChange={(e) => setSearch(e.target.value)} />
-        <div className="toggle-group">
-          <button className={`toggle-btn${tab === 'validated' ? ' active' : ''}`} onClick={() => setTab('validated')}>Validated</button>
-          <button className={`toggle-btn${tab === 'pending' ? ' active' : ''}`} onClick={() => setTab('pending')}>Pending</button>
-        </div>
         <ExportDropdown filename="USERS" columns={columns.filter((c) => c.key !== 'actions' && c.key !== 'photo')} rows={filtered} />
       </div>
 

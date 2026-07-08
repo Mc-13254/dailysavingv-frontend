@@ -21,6 +21,7 @@ import ContractTypeManagement from './pages/ContractTypeManagement';
 import NumberingParameterManagement from './pages/NumberingParameterManagement';
 import ValidationQueue from './pages/ValidationQueue';
 import TransactionManagement from './pages/TransactionManagement';
+import CashSessionManagement from './pages/CashSessionManagement';
 import ComingSoon from './pages/ComingSoon';
 
 function ProtectedRoute({ children }) {
@@ -56,12 +57,13 @@ function AppRoutes() {
         <Route path="collector-performance" element={<CollectorPerformanceManagement />} />
 
         {/* Gestion des Clients */}
-        <Route path="prospects" element={<ComingSoon title="Prospects" description="Suivi des prospects avant conversion en client — à venir." />} />
+        {/* Prospects module removed — not used */}
         <Route path="clients" element={<ClientManagement />} />
         <Route path="accounts" element={<AccountManagement />} />
         <Route path="contracts" element={<ContractManagement />} />
 
         {/* Opérations */}
+        <Route path="cash-session" element={<CashSessionManagement />} />
         <Route path="daily-collections" element={<TransactionManagement defaultType="DAILY_COLLECTION" title="Collectes journalières" />} />
         <Route path="deposits" element={<TransactionManagement defaultType="DEPOSIT" title="Dépôts" />} />
         <Route path="withdrawals" element={<TransactionManagement defaultType="WITHDRAWAL" title="Retraits" />} />

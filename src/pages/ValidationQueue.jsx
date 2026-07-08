@@ -1,11 +1,52 @@
 import { useEffect, useState } from 'react';
+import { ShieldCheck } from 'lucide-react';
 import DataTable from '../components/DataTable';
-import { CollectorAPI, ClientAPI, CommissionAPI, AgencyAPI, AccountAPI, ContractAPI, IMFAPI, UserAPI, RoleAPI, DepartmentAPI, ContractTypeAPI } from '../api/endpoints';
+import Modal from '../components/Modal';
+import { CollectorAPI, ClientAPI, CommissionAPI, AgencyAPI, AccountAPI, ContractAPI, IMFAPI, UserAPI, RoleAPI, DepartmentAPI, ContractTypeAPI, AuthAPI } from '../api/endpoints';
+
+// Every Tmp/draft record has a different shape depending on the module, so a
+// single "label" extractor tries the field names that actually carry a
+// human-readable identity for that record, in priority order. Without this,
+// the queue only shows a bare Pending ID, which makes it impossible to know
+// what's actually being approved.
+function getLabel(module, r) {
+  switch (module) {
+    case 'clients':
+      return [r.nom, r.prenom].filter(Boolean).join(' ') || r.numeroCNI || '—';
+    case 'collectors':
+      return [r.name, r.surname].filter(Boolean).join(' ') || r.codeUser || '—';
+    case 'users':
+      return [r.firstName, r.lastName].filter(Boolean).join(' ') || r.username || '—';
+    case 'contracts':
+      return [r.contractNumber, r.clientID && `(Client ${r.clientID})`].filter(Boolean).join(' ') || '—';
+    case 'accounts':
+      return [r.clientID && `Client ${r.clientID}`, r.accountType].filter(Boolean).join(' — ') || '—';
+    case 'agencies':
+      return r.nom || r.codeAgence || '—';
+    case 'imf':
+      return r.libelle || r.targetCodeIMF || '—';
+    case 'roles':
+      return r.libelle || r.code || '—';
+    case 'departments':
+      return r.departmentName || r.shortName || '—';
+    case 'contractTypes':
+      return r.contractName || r.shortName || '—';
+    case 'commissionRanges':
+      return r.description || (r.inf != null && r.sup != null ? `${r.inf} — ${r.sup}` : '—');
+    default:
+      return '—';
+  }
+}
 
 export default function ValidationQueue() {
   const [module, setModule] = useState('collectors');
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [confirming, setConfirming] = useState(null); // { pendingId } while password modal is open
+  const [password, setPassword] = useState('');
+  const [confirmError, setConfirmError] = useState('');
+  const [verifying, setVerifying] = useState(false);
 
   const loaders = {
     collectors: () => CollectorAPI.pending(),
@@ -60,14 +101,30 @@ export default function ValidationQueue() {
 
   useEffect(() => { load(); }, [module]);
 
-  const handleApprove = async (id) => {
+  // Step 1: user clicks "Valider" -> just opens the password confirmation popup.
+  const askApprove = (pendingId) => {
+    setConfirming(pendingId);
+    setPassword('');
+    setConfirmError('');
+  };
+
+  // Step 2: user confirms with their own password -> verify, then actually approve.
+  const confirmApprove = async () => {
+    if (!password) { setConfirmError('Veuillez saisir votre mot de passe.'); return; }
+    setVerifying(true);
+    setConfirmError('');
     try {
-      await approvers[module](id);
+      await AuthAPI.verifyPassword(password);
+      await approvers[module](confirming);
+      setConfirming(null);
       load();
     } catch (err) {
-      alert(err.response?.data?.message || "Erreur lors de la validation.");
+      setConfirmError(err.response?.data?.message || 'Mot de passe incorrect.');
+    } finally {
+      setVerifying(false);
     }
   };
+
   const handleReject = async (id) => {
     const reason = window.prompt('Motif du rejet ?') || 'Non spécifié';
     try {
@@ -79,15 +136,15 @@ export default function ValidationQueue() {
   };
 
   const columns = [
-    { key: 'pendingID', label: 'Pending ID' },
+    { key: 'pendingID', label: 'ID' },
+    { key: 'label', label: 'Ce qui est validé', render: (r) => <strong className="normal-case">{getLabel(module, r)}</strong> },
     { key: 'actionType', label: 'Action' },
     { key: 'requestUser', label: 'Demandé par' },
     { key: 'requestDate', label: 'Date de demande', render: (r) => new Date(r.requestDate).toLocaleString('fr-FR') },
-    { key: 'pendingStatus', label: 'Statut' },
     {
       key: 'actions', label: 'Actions', render: (r) => (
         <div style={{ display: 'flex', gap: 6 }}>
-          <button className="btn btn-primary btn-sm" onClick={() => handleApprove(r.pendingID)}>Valider</button>
+          <button className="btn btn-primary btn-sm" onClick={() => askApprove(r.pendingID)}>Valider</button>
           <button className="btn btn-danger btn-sm" onClick={() => handleReject(r.pendingID)}>Rejeter</button>
         </div>
       )
@@ -99,6 +156,8 @@ export default function ValidationQueue() {
     ['agencies', 'Agences'], ['accounts', 'Comptes'], ['contracts', 'Contrats'],
     ['imf', 'IMF'], ['users', 'Utilisateurs'], ['roles', 'Rôles'], ['departments', 'Départements'], ['contractTypes', 'Types de Contrat'],
   ];
+
+  const confirmingRow = rows.find((r) => r.pendingID === confirming);
 
   return (
     <div className="panel">
@@ -118,7 +177,37 @@ export default function ValidationQueue() {
       </div>
 
       <DataTable columns={columns} rows={rows} loading={loading} totalLabel={`EN ATTENTE: ${rows.length}`} />
+
+      {confirming != null && (
+        <Modal
+          title="Confirmer votre identité"
+          onClose={() => setConfirming(null)}
+          footer={
+            <>
+              <button className="btn btn-outline" onClick={() => setConfirming(null)}>Annuler</button>
+              <button className="btn btn-primary" disabled={verifying} onClick={confirmApprove}>
+                <ShieldCheck size={14} /> {verifying ? 'Vérification…' : 'Confirmer et valider'}
+              </button>
+            </>
+          }
+        >
+          <p className="text-xs text-gray-600 normal-case mb-3">
+            Vous êtes sur le point de valider : <strong>{confirmingRow ? getLabel(module, confirmingRow) : `#${confirming}`}</strong>.
+            Par mesure de sécurité, saisissez votre mot de passe pour confirmer.
+          </p>
+          {confirmError && <div className="error-banner">{confirmError}</div>}
+          <div className="form-group">
+            <label>Votre mot de passe</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && confirmApprove()}
+              autoFocus
+            />
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
-

@@ -8,7 +8,16 @@ import ExportDropdown from '../components/ExportDropdown';
 import SearchableSelect from '../components/SearchableSelect';
 import CompletenessBar from '../components/CompletenessBar';
 import WizardStepper from '../components/WizardStepper';
-import { ClientAPI, CollectorAPI } from '../api/endpoints';
+import { ClientAPI, CollectorAPI, GeoAPI } from '../api/endpoints';
+import { API_BASE_URL } from '../api/client';
+import PlaceSearchInput from '../components/PlaceSearchInput';
+
+// Uploaded documents are stored on the backend (wwwroot/uploads/...) and the
+// API returns a relative path. Since the frontend and backend are on
+// different origins, that relative path must be resolved against the API's
+// base URL, or the browser resolves it against the frontend's own origin
+// (where it obviously doesn't exist) and the image silently fails to load.
+const fileUrl = (path) => (path && path.startsWith('/') ? `${API_BASE_URL}${path}` : path);
 
 const STEPS = [
   'Personal', 'Contact', 'Identification', 'Documents', 'Business',
@@ -86,7 +95,7 @@ function UploadField({ label, value, onChange }) {
           <Upload size={13} /> {uploading ? 'Envoi…' : value ? 'Remplacer' : 'Téléverser'}
           <input type="file" accept="image/*,.pdf" hidden onChange={handleFile} />
         </label>
-        {value && <img src={value} alt={label} className="h-10 w-10 object-cover rounded border" onError={(e) => (e.target.style.display = 'none')} />}
+        {value && <img src={fileUrl(value)} alt={label} className="h-10 w-10 object-cover rounded border" onError={(e) => (e.target.style.display = 'none')} />}
         {value && <span className="text-[11px] text-emerald-600">✓ chargé</span>}
       </div>
     </Field>
@@ -94,11 +103,10 @@ function UploadField({ label, value, onChange }) {
 }
 
 export default function ClientManagement() {
-  const [tab, setTab] = useState('validated');
   const [search, setSearch] = useState('');
   const [rows, setRows] = useState([]);
-  const [pendingRows, setPendingRows] = useState([]);
   const [collectors, setCollectors] = useState([]);
+  const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [showWizard, setShowWizard] = useState(false);
@@ -114,17 +122,16 @@ export default function ClientManagement() {
   const loadAll = async () => {
     setLoading(true);
     try {
-      const [{ data: list }, { data: pend }] = await Promise.all([
-        ClientAPI.list(search),
-        ClientAPI.pending().catch(() => ({ data: [] })),
-      ]);
-      setRows(list);
-      setPendingRows(pend);
+      const { data } = await ClientAPI.list(search);
+      setRows(data);
     } finally { setLoading(false); }
   };
 
   useEffect(() => { loadAll(); }, [search]);
   useEffect(() => { CollectorAPI.list().then(({ data }) => setCollectors(data)).catch(() => {}); }, []);
+  useEffect(() => { GeoAPI.countries().then(({ data }) => setCountries(data)).catch(() => setCountries([])); }, []);
+
+  const countryOptions = countries.map((c) => ({ value: c.nom, label: c.nom }));
 
   const collectorOptions = collectors.map((c) => ({ value: c.collectorID, label: `${c.collectorID} — ${c.name} ${c.surname || ''}` }));
   const completeness = estimateCompleteness(form);
@@ -160,10 +167,10 @@ export default function ClientManagement() {
       const payload = toRequestPayload(form);
       if (editing) {
         await ClientAPI.update(editing.clientID, payload);
-        setNotice('Modification soumise pour validation.');
+        setNotice('Modification soumise pour validation (voir module Validation des opérations).');
       } else {
         await ClientAPI.create(payload);
-        setNotice('Client soumis pour validation.');
+        setNotice('Client soumis pour validation (voir module Validation des opérations).');
       }
       setShowWizard(false);
       loadAll();
@@ -181,13 +188,6 @@ export default function ClientManagement() {
     } catch (e) {
       setNotice(e?.response?.data?.message || 'Échec.');
     }
-  };
-
-  const handleApprove = async (id) => { await ClientAPI.approve(id); loadAll(); };
-  const handleReject = async (id) => {
-    const reason = window.prompt('Motif du rejet ?') || 'Non spécifié';
-    await ClientAPI.reject(id, reason);
-    loadAll();
   };
 
   const validatedColumns = [
@@ -215,22 +215,6 @@ export default function ClientManagement() {
     },
   ];
 
-  const pendingColumns = [
-    { key: 'pendingID', label: 'Pending ID' },
-    { key: 'actionType', label: 'Action' },
-    { key: 'nom', label: 'Nom' },
-    { key: 'requestUser', label: 'Demandé par' },
-    { key: 'requestDate', label: 'Date', render: (r) => new Date(r.requestDate).toLocaleString('fr-FR') },
-    {
-      key: 'actions', label: 'Actions', sortable: false, render: (r) => (
-        <div className="flex items-center gap-2">
-          <button className="btn btn-primary btn-sm" onClick={() => handleApprove(r.pendingID)}>Valider</button>
-          <button className="btn btn-danger btn-sm" onClick={() => handleReject(r.pendingID)}>Rejeter</button>
-        </div>
-      )
-    },
-  ];
-
   return (
     <div className="panel">
       <div className="panel-header">
@@ -242,20 +226,10 @@ export default function ClientManagement() {
 
       <div className="toolbar">
         <input className="search-input" placeholder="Code, nom, téléphone, CNI…" value={search} onChange={(e) => setSearch(e.target.value)} />
-        <div className="toggle-group">
-          <button className={`toggle-btn${tab === 'validated' ? ' active' : ''}`} onClick={() => setTab('validated')}>Validated</button>
-          <button className={`toggle-btn${tab === 'pending' ? ' active' : ''}`} onClick={() => setTab('pending')}>Pending</button>
-        </div>
-        {tab === 'validated' && (
-          <ExportDropdown filename="CLIENTS" columns={validatedColumns.filter((c) => c.key !== 'actions')} rows={rows} />
-        )}
+        <ExportDropdown filename="CLIENTS" columns={validatedColumns.filter((c) => c.key !== 'actions')} rows={rows} />
       </div>
 
-      {tab === 'validated' ? (
-        <DataTable columns={validatedColumns} rows={rows} loading={loading} totalLabel={`TOTAL VALIDATED CLIENTS: ${rows.length}`} />
-      ) : (
-        <DataTable columns={pendingColumns} rows={pendingRows} loading={loading} totalLabel={`EN ATTENTE: ${pendingRows.length}`} />
-      )}
+      <DataTable columns={validatedColumns} rows={rows} loading={loading} totalLabel={`TOTAL CLIENTS: ${rows.length}`} />
 
       {showWizard && (
         <WideModal
@@ -288,7 +262,9 @@ export default function ClientManagement() {
               </Field>
               <Field label="Date de naissance"><input type="date" value={form.dateOfBirth?.slice(0, 10) || ''} onChange={set('dateOfBirth')} /></Field>
               <Field label="Lieu de naissance"><input value={form.placeOfBirth} onChange={set('placeOfBirth')} /></Field>
-              <Field label="Nationalité"><input value={form.nationality} onChange={set('nationality')} /></Field>
+              <Field label="Nationalité">
+                <SearchableSelect options={countryOptions} value={form.nationality} onChange={(v) => setForm({ ...form, nationality: v })} placeholder="Choisir un pays…" />
+              </Field>
               <Field label="Statut marital">
                 <select value={form.maritalStatus} onChange={set('maritalStatus')}>
                   <option value="">—</option><option>Célibataire</option><option>Marié(e)</option><option>Divorcé(e)</option><option>Veuf/Veuve</option>
@@ -312,7 +288,15 @@ export default function ClientManagement() {
               <Field label="Téléphone secondaire"><input value={form.secondaryPhone} onChange={set('secondaryPhone')} /></Field>
               <Field label="WhatsApp"><input value={form.whatsApp} onChange={set('whatsApp')} /></Field>
               <Field label="Email"><input type="email" value={form.email} onChange={set('email')} /></Field>
-              <Field label="Pays"><input value={form.country} onChange={set('country')} /></Field>
+
+              <div className="form-group sm:col-span-3">
+                <label>Rechercher une adresse (n'importe où dans le monde) — remplit automatiquement les champs ci-dessous</label>
+                <PlaceSearchInput onSelect={(place) => setForm({ ...form, ...place })} />
+              </div>
+
+              <Field label="Pays">
+                <SearchableSelect options={countryOptions} value={form.country} onChange={(v) => setForm({ ...form, country: v })} placeholder="Choisir un pays…" />
+              </Field>
               <Field label="Ville"><input value={form.city} onChange={set('city')} /></Field>
               <Field label="Quartier"><input value={form.district} onChange={set('district')} /></Field>
               <Field label="Voisinage"><input value={form.neighborhood} onChange={set('neighborhood')} /></Field>
@@ -485,7 +469,7 @@ export default function ClientManagement() {
               <div className="form-card-title">Documents</div>
               <div className="flex gap-2 flex-wrap">
                 {[viewing.image, viewing.nationalIDFrontUrl, viewing.nationalIDBackUrl, viewing.signatureUrl].filter(Boolean).map((u, i) => (
-                  <img key={i} src={u} alt="doc" className="h-12 w-12 object-cover rounded border" />
+                  <img key={i} src={fileUrl(u)} alt="doc" className="h-12 w-12 object-cover rounded border" />
                 ))}
                 {![viewing.image, viewing.nationalIDFrontUrl, viewing.nationalIDBackUrl, viewing.signatureUrl].some(Boolean) && <span className="text-gray-400">Aucun document</span>}
               </div>
