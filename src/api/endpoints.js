@@ -18,12 +18,18 @@ export const CollectorAPI = {
 
 export const ClientAPI = {
   list: (search) => client.get('/api/client', { params: { search } }),
+  get: (id) => client.get(`/api/client/${id}`),
   pending: () => client.get('/api/client/pending'),
   create: (payload) => client.post('/api/client', payload),
   update: (id, payload) => client.put(`/api/client/${id}`, payload),
   remove: (id) => client.delete(`/api/client/${id}`),
   approve: (pendingId) => client.post(`/api/client/pending/${pendingId}/approve`),
   reject: (pendingId, reason) => client.post(`/api/client/pending/${pendingId}/reject`, { reason }),
+  upload: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return client.post('/api/client/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
 };
 
 export const CommissionAPI = {
@@ -62,22 +68,27 @@ export const AgencyAPI = {
 
 export const AccountAPI = {
   list: (search) => client.get('/api/accounts', { params: { search } }),
+  eligibleContracts: () => client.get('/api/accounts/eligible-contracts'),
   create: (payload) => client.post('/api/accounts', payload),
   update: (id, payload) => client.put(`/api/accounts/${id}`, payload),
-  remove: (id) => client.delete(`/api/accounts/${id}`),
   pending: () => client.get('/api/accounts/pending'),
   approve: (pendingId) => client.post(`/api/accounts/pending/${pendingId}/approve`),
   reject: (pendingId, reason) => client.post(`/api/accounts/pending/${pendingId}/reject`, { reason }),
+  freeze: (id, reason) => client.post(`/api/accounts/${id}/freeze`, { reason }),
+  unfreeze: (id) => client.post(`/api/accounts/${id}/unfreeze`),
+  close: (id, reason) => client.post(`/api/accounts/${id}/close`, { reason }),
+  statement: (id, params) => client.get(`/api/accounts/${id}/statement`, { params }),
 };
 
 export const ContractAPI = {
   list: () => client.get('/api/contract'),
+  eligibleClients: () => client.get('/api/contract/eligible-clients'),
   create: (payload) => client.post('/api/contract', payload),
   update: (id, payload) => client.put(`/api/contract/${id}`, payload),
-  remove: (id) => client.delete(`/api/contract/${id}`),
   pending: () => client.get('/api/contract/pending'),
   approve: (pendingId) => client.post(`/api/contract/pending/${pendingId}/approve`),
   reject: (pendingId, reason) => client.post(`/api/contract/pending/${pendingId}/reject`, { reason }),
+  terminate: (id, reason) => client.post(`/api/contract/${id}/terminate`, { reason }),
 };
 
 export const IMFAPI = {
