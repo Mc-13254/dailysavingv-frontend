@@ -212,13 +212,21 @@ export default function CollectorManagement() {
                     <SearchableSelect options={userOptions} value={form.codeUser} onChange={handleSelectUser} placeholder="Choisir un utilisateur (Rôle Collector, Actif, non assigné)…" />
                   </div>
                   {selectedUser && (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-2 text-[12px]">
-                      <div><span className="text-gray-400">First Name:</span> {selectedUser.firstName}</div>
-                      <div><span className="text-gray-400">Last Name:</span> {selectedUser.lastName}</div>
-                      <div><span className="text-gray-400">Phone:</span> {selectedUser.phone || '—'}</div>
-                      <div><span className="text-gray-400">Email:</span> {selectedUser.email || '—'}</div>
-                      <div><span className="text-gray-400">Agency:</span> {selectedUser.agenceNom || '—'}</div>
-                      <div><span className="text-gray-400">Department:</span> {selectedUser.departmentNom || '—'}</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5 mt-2 items-start">
+                      <div className="flex flex-col items-center gap-1.5">
+                        <label className="text-[11px] text-gray-500 self-start">Photo</label>
+                        {selectedUser.photo ? (
+                          <img src={selectedUser.photo} alt="" className="w-16 h-16 rounded-full object-cover border border-gray-200" />
+                        ) : (
+                          <div className="w-16 h-16 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 text-[10px]">N/A</div>
+                        )}
+                      </div>
+                      <div className="form-group"><label>First Name</label><input disabled value={selectedUser.firstName || ''} /></div>
+                      <div className="form-group"><label>Last Name</label><input disabled value={selectedUser.lastName || ''} /></div>
+                      <div className="form-group"><label>Phone</label><input disabled value={selectedUser.phone || ''} /></div>
+                      <div className="form-group"><label>Email</label><input disabled value={selectedUser.email || ''} /></div>
+                      <div className="form-group"><label>Agency</label><input disabled value={selectedUser.agenceNom || ''} /></div>
+                      <div className="form-group"><label>Department</label><input disabled value={selectedUser.departmentNom || ''} /></div>
                     </div>
                   )}
                 </div>
