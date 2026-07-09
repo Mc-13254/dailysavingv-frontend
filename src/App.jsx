@@ -26,6 +26,8 @@ import ReportCenter from './pages/ReportCenter';
 import TransactionHistory from './pages/TransactionHistory';
 import CashSessionReports from './pages/CashSessionReports';
 import ClientReports from './pages/ClientReports';
+import AccountReports from './pages/AccountReports';
+import ContractReports from './pages/ContractReports';
 import ComingSoon from './pages/ComingSoon';
 
 function ProtectedRoute({ children }) {
@@ -83,8 +85,8 @@ function AppRoutes() {
         <Route path="reports/commissions" element={<ComingSoon title="Rapport des commissions" />} />
         <Route path="reports/receipts" element={<ComingSoon title="Receipts" />} />
         <Route path="reports/daily-collections" element={<ComingSoon title="Daily Collection Reports" />} />
-        <Route path="reports/accounts" element={<ComingSoon title="Account Reports" />} />
-        <Route path="reports/contracts" element={<ComingSoon title="Contract Reports" />} />
+        <Route path="reports/accounts" element={<AccountReports />} />
+        <Route path="reports/contracts" element={<ContractReports />} />
         <Route path="reports/cash-sessions" element={<CashSessionReports />} />
         <Route path="reports/financial" element={<ComingSoon title="Financial Reports" />} />
         <Route path="reports/audit" element={<ComingSoon title="Audit Reports" />} />

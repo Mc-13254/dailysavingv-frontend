@@ -80,6 +80,12 @@ export const ReportsAPI = {
   clients: (params) => client.get('/api/reports/clients', { params }),
   clientDetail: (id) => client.get(`/api/reports/clients/${id}`),
   clientStats: () => client.get('/api/reports/clients/stats'),
+  accounts: (params) => client.get('/api/reports/accounts', { params }),
+  accountDetail: (id) => client.get(`/api/reports/accounts/${id}`),
+  accountStats: () => client.get('/api/reports/accounts/stats'),
+  contracts: (params) => client.get('/api/reports/contracts', { params }),
+  contractDetail: (id) => client.get(`/api/reports/contracts/${id}`),
+  contractStats: () => client.get('/api/reports/contracts/stats'),
 };
 
 // Agency / Account / Contract / IMF / Users: same REST shape as Collector/Client
