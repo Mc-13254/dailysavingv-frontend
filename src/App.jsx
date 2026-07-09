@@ -24,6 +24,7 @@ import TransactionManagement from './pages/TransactionManagement';
 import CashSessionManagement from './pages/CashSessionManagement';
 import ReportCenter from './pages/ReportCenter';
 import TransactionHistory from './pages/TransactionHistory';
+import CashSessionReports from './pages/CashSessionReports';
 import ComingSoon from './pages/ComingSoon';
 
 function ProtectedRoute({ children }) {
@@ -83,7 +84,7 @@ function AppRoutes() {
         <Route path="reports/daily-collections" element={<ComingSoon title="Daily Collection Reports" />} />
         <Route path="reports/accounts" element={<ComingSoon title="Account Reports" />} />
         <Route path="reports/contracts" element={<ComingSoon title="Contract Reports" />} />
-        <Route path="reports/cash-sessions" element={<ComingSoon title="Cash Session Reports" />} />
+        <Route path="reports/cash-sessions" element={<CashSessionReports />} />
         <Route path="reports/financial" element={<ComingSoon title="Financial Reports" />} />
         <Route path="reports/audit" element={<ComingSoon title="Audit Reports" />} />
 
