@@ -126,6 +126,22 @@ export const SecurityAPI = {
   systemHealth: () => client.get('/api/security/system-health'),
 };
 
+export const LoanAPI = {
+  products: () => client.get('/api/loans/products'),
+  createProduct: (payload) => client.post('/api/loans/products', payload),
+  applications: (params) => client.get('/api/loans/applications', { params }),
+  createApplication: (payload) => client.post('/api/loans/applications', payload),
+  approveApplication: (id, payload) => client.post(`/api/loans/applications/${id}/approve`, payload),
+  rejectApplication: (id, reason) => client.post(`/api/loans/applications/${id}/reject`, { reason }),
+  disburse: (id, payload) => client.post(`/api/loans/applications/${id}/disburse`, payload),
+  list: (params) => client.get('/api/loans', { params }),
+  detail: (id) => client.get(`/api/loans/${id}`),
+  schedule: (id) => client.get(`/api/loans/${id}/schedule`),
+  repay: (id, amount) => client.post(`/api/loans/${id}/repay`, { amount }),
+  writeOff: (id, reason) => client.post(`/api/loans/${id}/write-off`, { reason }),
+  dashboard: () => client.get('/api/loans/dashboard'),
+};
+
 // Agency / Account / Contract / IMF / Users: same REST shape as Collector/Client
 // (backend controllers for these follow the identical Maker-Checker pattern —
 // see the .NET README for how to extend CollectorController's pattern to them).

@@ -48,6 +48,11 @@ const NAV_GROUPS = [
     ]
   },
   {
+    label: 'Prêts', icon: Landmark, base: '/loans', items: [
+      { to: '/loans', label: 'Loan Management', icon: Landmark },
+    ]
+  },
+  {
     label: 'Opérations', icon: ArrowLeftRight, base: '/operations', items: [
       { to: '/cash-session', label: 'Session de caisse', icon: Clock },
       { to: '/daily-collections', label: 'Collectes journalières', icon: CalendarCheck },

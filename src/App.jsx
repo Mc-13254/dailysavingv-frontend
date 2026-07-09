@@ -39,6 +39,7 @@ import FailedLoginAttempts from './pages/FailedLoginAttempts';
 import ChangePassword from './pages/ChangePassword';
 import SecuritySettings from './pages/SecuritySettings';
 import SystemHealth from './pages/SystemHealth';
+import LoanManagement from './pages/LoanManagement';
 import ComingSoon from './pages/ComingSoon';
 
 function ProtectedRoute({ children, allowPendingChange = false }) {
@@ -79,6 +80,7 @@ function AppRoutes() {
         {/* Prospects module removed — not used */}
         <Route path="clients" element={<ClientManagement />} />
         <Route path="accounts" element={<AccountManagement />} />
+        <Route path="loans" element={<LoanManagement />} />
         <Route path="contracts" element={<ContractManagement />} />
 
         {/* Opérations */}
