@@ -76,7 +76,7 @@ function AppRoutes() {
         {/* Rapports */}
         <Route path="reports/center" element={<ReportCenter />} />
         <Route path="reports/transaction-history" element={<TransactionHistory />} />
-        <Route path="reports/collectors" element={<ComingSoon title="Rapport des collecteurs" />} />
+        {/* Collector Reports -> reuses /collector-performance, see Layout.jsx nav */}
         <Route path="reports/clients" element={<ComingSoon title="Rapport des clients" />} />
         <Route path="reports/agencies" element={<ComingSoon title="Rapport des agences" />} />
         <Route path="reports/commissions" element={<ComingSoon title="Rapport des commissions" />} />

@@ -63,7 +63,7 @@ const NAV_GROUPS = [
       { to: '/reports/transaction-history', label: 'Transaction History', icon: History },
       { to: '/reports/receipts', label: 'Receipts', icon: FileText },
       { to: '/reports/daily-collections', label: 'Daily Collection Reports', icon: CalendarCheck },
-      { to: '/reports/collectors', label: 'Collector Reports', icon: UserCog },
+      { to: '/collector-performance', label: 'Collector Reports', icon: UserCog },
       { to: '/reports/clients', label: 'Client Reports', icon: Users },
       { to: '/reports/accounts', label: 'Account Reports', icon: Wallet },
       { to: '/reports/contracts', label: 'Contract Reports', icon: FileSignature },
