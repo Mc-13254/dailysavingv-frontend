@@ -36,11 +36,15 @@ import Receipts from './pages/Receipts';
 import DailyCollectionReports from './pages/DailyCollectionReports';
 import ActiveSessions from './pages/ActiveSessions';
 import FailedLoginAttempts from './pages/FailedLoginAttempts';
+import ChangePassword from './pages/ChangePassword';
+import SecuritySettings from './pages/SecuritySettings';
+import SystemHealth from './pages/SystemHealth';
 import ComingSoon from './pages/ComingSoon';
 
-function ProtectedRoute({ children }) {
-  const { isAuthenticated } = useAuth();
+function ProtectedRoute({ children, allowPendingChange = false }) {
+  const { isAuthenticated, user } = useAuth();
   if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user?.mustChangePassword && !allowPendingChange) return <Navigate to="/change-password" replace />;
   return children;
 }
 
@@ -48,6 +52,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/change-password" element={<ProtectedRoute allowPendingChange><ChangePassword /></ProtectedRoute>} />
       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<Dashboard />} />
 
@@ -102,6 +107,8 @@ function AppRoutes() {
         {/* Sécurité */}
         <Route path="security/sessions" element={<ActiveSessions />} />
         <Route path="security/failed-logins" element={<FailedLoginAttempts />} />
+        <Route path="security/settings" element={<SecuritySettings />} />
+        <Route path="security/system-health" element={<SystemHealth />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -6,7 +6,7 @@ import {
   Percent, Layers, Hash, UserCog, UserPlus, TrendingUp, Wallet,
   FileText, CalendarCheck, ArrowDownCircle, ArrowUpCircle, CheckCircle2,
   BarChart3, LogIn, History, ScrollText, ShieldAlert, SlidersHorizontal,
-  ArrowLeftRight,
+  ArrowLeftRight, Activity,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -79,6 +79,8 @@ const NAV_GROUPS = [
       { to: '/security/sessions', label: 'Active Sessions', icon: LogIn },
       { to: '/security/failed-logins', label: 'Failed Login Attempts', icon: ShieldAlert },
       { to: '/reports/audit', label: 'Audit & Login History', icon: ScrollText },
+      { to: '/security/settings', label: 'Password Policy & API', icon: KeyRound },
+      { to: '/security/system-health', label: 'System Health', icon: Activity },
     ]
   },
 ];

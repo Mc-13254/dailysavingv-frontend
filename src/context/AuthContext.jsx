@@ -20,6 +20,7 @@ export function AuthProvider({ children }) {
       agenceID: data.agenceID,
       agenceNom: data.agenceNom,
       agenceCode: data.agenceCode,
+      mustChangePassword: data.mustChangePassword,
     };
     localStorage.setItem('dsv_user', JSON.stringify(userInfo));
     setUser(userInfo);
@@ -33,8 +34,17 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
+  const clearMustChangePassword = useCallback(() => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, mustChangePassword: false };
+      localStorage.setItem('dsv_user', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user, clearMustChangePassword }}>
       {children}
     </AuthContext.Provider>
   );

@@ -115,6 +115,15 @@ export const SecurityAPI = {
   sessions: () => client.get('/api/security/sessions'),
   sessionStats: () => client.get('/api/security/sessions/stats'),
   terminateSession: (tokenId, reason) => client.post(`/api/security/sessions/${tokenId}/terminate`, { reason }),
+  passwordPolicy: () => client.get('/api/security/password-policy'),
+  savePasswordPolicy: (payload) => client.put('/api/security/password-policy', payload),
+  changePassword: (payload) => client.post('/api/security/change-password', payload),
+  passwordStrength: (password) => client.post('/api/security/password-strength', JSON.stringify(password), { headers: { 'Content-Type': 'application/json' } }),
+  apiKeys: () => client.get('/api/security/api-keys'),
+  createApiKey: (payload) => client.post('/api/security/api-keys', payload),
+  revokeApiKey: (id) => client.post(`/api/security/api-keys/${id}/revoke`),
+  errorLogs: (params) => client.get('/api/security/error-logs', { params }),
+  systemHealth: () => client.get('/api/security/system-health'),
 };
 
 // Agency / Account / Contract / IMF / Users: same REST shape as Collector/Client
