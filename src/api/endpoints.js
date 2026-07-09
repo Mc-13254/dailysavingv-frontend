@@ -159,6 +159,16 @@ export const DocumentAPI = {
   remove: (id) => client.delete(`/api/documents/${id}`),
 };
 
+export const AccountingAPI = {
+  chartOfAccounts: () => client.get('/api/accounting/chart-of-accounts'),
+  trialBalance: (params) => client.get('/api/accounting/trial-balance', { params }),
+  generalLedger: (glAccountId, params) => client.get(`/api/accounting/general-ledger/${glAccountId}`, { params }),
+  balanceSheet: (params) => client.get('/api/accounting/balance-sheet', { params }),
+  profitAndLoss: (params) => client.get('/api/accounting/profit-loss', { params }),
+  cashBook: (params) => client.get('/api/accounting/cash-book', { params }),
+  cashFlow: (params) => client.get('/api/accounting/cash-flow', { params }),
+};
+
 export const NotificationAPI = {
   list: (unreadOnly) => client.get('/api/notifications', { params: { unreadOnly } }),
   unreadCount: () => client.get('/api/notifications/unread-count'),

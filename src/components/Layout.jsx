@@ -60,6 +60,11 @@ const NAV_GROUPS = [
     ]
   },
   {
+    label: 'Comptabilité', icon: BarChart3, base: '/accounting', items: [
+      { to: '/accounting', label: 'Accounting Management', icon: BarChart3 },
+    ]
+  },
+  {
     label: 'Opérations', icon: ArrowLeftRight, base: '/operations', items: [
       { to: '/cash-session', label: 'Session de caisse', icon: Clock },
       { to: '/teller', label: 'Teller Management (Coffre)', icon: Landmark },
