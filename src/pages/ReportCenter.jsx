@@ -19,8 +19,8 @@ const REPORTS = [
   { to: '/reports/commissions', label: 'Commission Reports', icon: Percent, ready: true },
   { to: '/reports/cash-sessions', label: 'Cash Session Reports', icon: Wallet2, ready: true },
   { to: '/reports/agencies', label: 'Agency Reports', icon: Building2, ready: true },
-  { to: '/reports/financial', label: 'Financial Reports', icon: FileText, ready: false },
-  { to: '/reports/audit', label: 'Audit Reports', icon: ScrollText, ready: false },
+  { to: '/reports/financial', label: 'Financial Reports', icon: FileText, ready: true },
+  { to: '/reports/audit', label: 'Audit Reports', icon: ScrollText, ready: true },
 ];
 
 export default function ReportCenter() {

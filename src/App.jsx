@@ -30,6 +30,8 @@ import AccountReports from './pages/AccountReports';
 import ContractReports from './pages/ContractReports';
 import CommissionReports from './pages/CommissionReports';
 import AgencyReports from './pages/AgencyReports';
+import FinancialReports from './pages/FinancialReports';
+import AuditReports from './pages/AuditReports';
 import ComingSoon from './pages/ComingSoon';
 
 function ProtectedRoute({ children }) {
@@ -90,8 +92,8 @@ function AppRoutes() {
         <Route path="reports/accounts" element={<AccountReports />} />
         <Route path="reports/contracts" element={<ContractReports />} />
         <Route path="reports/cash-sessions" element={<CashSessionReports />} />
-        <Route path="reports/financial" element={<ComingSoon title="Financial Reports" />} />
-        <Route path="reports/audit" element={<ComingSoon title="Audit Reports" />} />
+        <Route path="reports/financial" element={<FinancialReports />} />
+        <Route path="reports/audit" element={<AuditReports />} />
 
         {/* Sécurité */}
         <Route path="security/logins" element={<ComingSoon title="Journal des connexions" description="Basé sur la table Activite déjà alimentée par chaque login — page à construire." />} />
