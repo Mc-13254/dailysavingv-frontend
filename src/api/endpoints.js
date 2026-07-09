@@ -77,6 +77,9 @@ export const ReportsAPI = {
   cashSessions: (params) => client.get('/api/reports/cash-sessions', { params }),
   cashSessionDetail: (id) => client.get(`/api/reports/cash-sessions/${id}`),
   cashSessionStats: () => client.get('/api/reports/cash-sessions/stats'),
+  clients: (params) => client.get('/api/reports/clients', { params }),
+  clientDetail: (id) => client.get(`/api/reports/clients/${id}`),
+  clientStats: () => client.get('/api/reports/clients/stats'),
 };
 
 // Agency / Account / Contract / IMF / Users: same REST shape as Collector/Client

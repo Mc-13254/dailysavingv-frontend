@@ -13,7 +13,7 @@ const REPORTS = [
   { to: '/reports/receipts', label: 'Receipts', icon: Receipt, ready: false },
   { to: '/reports/daily-collections', label: 'Daily Collection Reports', icon: CalendarCheck, ready: false },
   { to: '/collector-performance', label: 'Collector Reports', icon: UserCog, ready: true },
-  { to: '/reports/clients', label: 'Client Reports', icon: Users, ready: false },
+  { to: '/reports/clients', label: 'Client Reports', icon: Users, ready: true },
   { to: '/reports/accounts', label: 'Account Reports', icon: Wallet, ready: false },
   { to: '/reports/contracts', label: 'Contract Reports', icon: FileText, ready: false },
   { to: '/reports/commissions', label: 'Commission Reports', icon: Percent, ready: false },
