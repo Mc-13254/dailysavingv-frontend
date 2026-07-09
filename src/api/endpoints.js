@@ -104,6 +104,7 @@ export const ReportsAPI = {
   dailyCollections: (params) => client.get('/api/reports/daily-collections', { params }),
   dailyCollectionsByZone: () => client.get('/api/reports/daily-collections/by-zone'),
   dailyCollectionStats: () => client.get('/api/reports/daily-collections/stats'),
+  executive: () => client.get('/api/reports/executive'),
 };
 
 export const SecurityAPI = {
@@ -140,6 +141,16 @@ export const LoanAPI = {
   repay: (id, amount) => client.post(`/api/loans/${id}/repay`, { amount }),
   writeOff: (id, reason) => client.post(`/api/loans/${id}/write-off`, { reason }),
   dashboard: () => client.get('/api/loans/dashboard'),
+};
+
+export const TellerAPI = {
+  vault: () => client.get('/api/teller/vault'),
+  setVaultLimits: (minimumBalance, maximumBalance) => client.put('/api/teller/vault/limits', null, { params: { minimumBalance, maximumBalance } }),
+  movements: (params) => client.get('/api/teller/movements', { params }),
+  requestMovement: (payload) => client.post('/api/teller/movements', payload),
+  approveMovement: (id) => client.post(`/api/teller/movements/${id}/approve`),
+  rejectMovement: (id, reason) => client.post(`/api/teller/movements/${id}/reject`, { reason }),
+  dashboard: () => client.get('/api/teller/dashboard'),
 };
 
 // Agency / Account / Contract / IMF / Users: same REST shape as Collector/Client

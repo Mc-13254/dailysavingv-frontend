@@ -14,6 +14,7 @@ import { useAuth } from '../context/AuthContext';
 // IMF -> Agences -> Utilisateurs -> Collecteurs -> Paramètres métier -> Clients -> Opérations -> Rapports -> Sécurité
 const NAV_GROUPS = [
   { to: '/', label: 'Tableau de bord', icon: LayoutDashboard, standalone: true },
+  { to: '/executive-dashboard', label: 'Executive Dashboard', icon: TrendingUp, standalone: true },
 
   {
     label: 'Administration', icon: ShieldCheck, base: '/admin', items: [
@@ -55,6 +56,7 @@ const NAV_GROUPS = [
   {
     label: 'Opérations', icon: ArrowLeftRight, base: '/operations', items: [
       { to: '/cash-session', label: 'Session de caisse', icon: Clock },
+      { to: '/teller', label: 'Teller Management (Coffre)', icon: Landmark },
       { to: '/daily-collections', label: 'Collectes journalières', icon: CalendarCheck },
       { to: '/deposits', label: 'Dépôts', icon: ArrowDownCircle },
       { to: '/withdrawals', label: 'Retraits', icon: ArrowUpCircle },
