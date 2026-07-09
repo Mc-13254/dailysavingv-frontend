@@ -16,9 +16,9 @@ const REPORTS = [
   { to: '/reports/clients', label: 'Client Reports', icon: Users, ready: true },
   { to: '/reports/accounts', label: 'Account Reports', icon: Wallet, ready: true },
   { to: '/reports/contracts', label: 'Contract Reports', icon: FileText, ready: true },
-  { to: '/reports/commissions', label: 'Commission Reports', icon: Percent, ready: false },
+  { to: '/reports/commissions', label: 'Commission Reports', icon: Percent, ready: true },
   { to: '/reports/cash-sessions', label: 'Cash Session Reports', icon: Wallet2, ready: true },
-  { to: '/reports/agencies', label: 'Agency Reports', icon: Building2, ready: false },
+  { to: '/reports/agencies', label: 'Agency Reports', icon: Building2, ready: true },
   { to: '/reports/financial', label: 'Financial Reports', icon: FileText, ready: false },
   { to: '/reports/audit', label: 'Audit Reports', icon: ScrollText, ready: false },
 ];

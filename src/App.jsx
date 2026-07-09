@@ -28,6 +28,8 @@ import CashSessionReports from './pages/CashSessionReports';
 import ClientReports from './pages/ClientReports';
 import AccountReports from './pages/AccountReports';
 import ContractReports from './pages/ContractReports';
+import CommissionReports from './pages/CommissionReports';
+import AgencyReports from './pages/AgencyReports';
 import ComingSoon from './pages/ComingSoon';
 
 function ProtectedRoute({ children }) {
@@ -81,8 +83,8 @@ function AppRoutes() {
         <Route path="reports/transaction-history" element={<TransactionHistory />} />
         {/* Collector Reports -> reuses /collector-performance, see Layout.jsx nav */}
         <Route path="reports/clients" element={<ClientReports />} />
-        <Route path="reports/agencies" element={<ComingSoon title="Rapport des agences" />} />
-        <Route path="reports/commissions" element={<ComingSoon title="Rapport des commissions" />} />
+        <Route path="reports/agencies" element={<AgencyReports />} />
+        <Route path="reports/commissions" element={<CommissionReports />} />
         <Route path="reports/receipts" element={<ComingSoon title="Receipts" />} />
         <Route path="reports/daily-collections" element={<ComingSoon title="Daily Collection Reports" />} />
         <Route path="reports/accounts" element={<AccountReports />} />

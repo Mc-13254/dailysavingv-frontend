@@ -86,6 +86,13 @@ export const ReportsAPI = {
   contracts: (params) => client.get('/api/reports/contracts', { params }),
   contractDetail: (id) => client.get(`/api/reports/contracts/${id}`),
   contractStats: () => client.get('/api/reports/contracts/stats'),
+  commissions: (params) => client.get('/api/reports/commissions', { params }),
+  commissionByCollector: () => client.get('/api/reports/commissions/by-collector'),
+  commissionByAgency: () => client.get('/api/reports/commissions/by-agency'),
+  commissionStats: () => client.get('/api/reports/commissions/stats'),
+  agencies: () => client.get('/api/reports/agencies'),
+  agencyDetail: (id) => client.get(`/api/reports/agencies/${id}`),
+  agencyStats: () => client.get('/api/reports/agencies/stats'),
 };
 
 // Agency / Account / Contract / IMF / Users: same REST shape as Collector/Client
