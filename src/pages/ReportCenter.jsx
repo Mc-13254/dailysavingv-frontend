@@ -10,8 +10,8 @@ const fmt = (n) => new Intl.NumberFormat('fr-FR').format(n || 0);
 
 const REPORTS = [
   { to: '/reports/transaction-history', label: 'Transaction History', icon: History, statKey: 'transactions_today', ready: true },
-  { to: '/reports/receipts', label: 'Receipts', icon: Receipt, ready: false },
-  { to: '/reports/daily-collections', label: 'Daily Collection Reports', icon: CalendarCheck, ready: false },
+  { to: '/reports/receipts', label: 'Receipts', icon: Receipt, ready: true },
+  { to: '/reports/daily-collections', label: 'Daily Collection Reports', icon: CalendarCheck, ready: true },
   { to: '/collector-performance', label: 'Collector Reports', icon: UserCog, ready: true },
   { to: '/reports/clients', label: 'Client Reports', icon: Users, ready: true },
   { to: '/reports/accounts', label: 'Account Reports', icon: Wallet, ready: true },

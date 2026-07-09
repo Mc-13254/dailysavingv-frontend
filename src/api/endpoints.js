@@ -99,6 +99,11 @@ export const ReportsAPI = {
   auditDetail: (entityType, id) => client.get(`/api/reports/audit/${entityType}/${id}`),
   loginHistory: (params) => client.get('/api/reports/audit/login-history', { params }),
   auditStats: () => client.get('/api/reports/audit/stats'),
+  receipts: (params) => client.get('/api/reports/receipts', { params }),
+  receiptStats: () => client.get('/api/reports/receipts/stats'),
+  dailyCollections: (params) => client.get('/api/reports/daily-collections', { params }),
+  dailyCollectionsByZone: () => client.get('/api/reports/daily-collections/by-zone'),
+  dailyCollectionStats: () => client.get('/api/reports/daily-collections/stats'),
 };
 
 // Agency / Account / Contract / IMF / Users: same REST shape as Collector/Client
