@@ -42,6 +42,7 @@ import SystemHealth from './pages/SystemHealth';
 import LoanManagement from './pages/LoanManagement';
 import TellerManagement from './pages/TellerManagement';
 import ExecutiveDashboard from './pages/ExecutiveDashboard';
+import DocumentManagement from './pages/DocumentManagement';
 import ComingSoon from './pages/ComingSoon';
 
 function ProtectedRoute({ children, allowPendingChange = false }) {
@@ -85,6 +86,7 @@ function AppRoutes() {
         <Route path="loans" element={<LoanManagement />} />
         <Route path="teller" element={<TellerManagement />} />
         <Route path="executive-dashboard" element={<ExecutiveDashboard />} />
+        <Route path="documents" element={<DocumentManagement />} />
         <Route path="contracts" element={<ContractManagement />} />
 
         {/* Opérations */}

@@ -9,6 +9,7 @@ import {
   ArrowLeftRight, Activity,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import NotificationBell from './NotificationBell';
 
 // Sidebar structure follows the business hierarchy:
 // IMF -> Agences -> Utilisateurs -> Collecteurs -> Paramètres métier -> Clients -> Opérations -> Rapports -> Sécurité
@@ -51,6 +52,11 @@ const NAV_GROUPS = [
   {
     label: 'Prêts', icon: Landmark, base: '/loans', items: [
       { to: '/loans', label: 'Loan Management', icon: Landmark },
+    ]
+  },
+  {
+    label: 'Documents', icon: FileText, base: '/documents', items: [
+      { to: '/documents', label: 'Document Management', icon: FileText },
     ]
   },
   {
@@ -222,6 +228,7 @@ export default function Layout() {
           </span>
 
           <div className="ml-auto flex items-center gap-4">
+            <NotificationBell />
             <button className="text-white/80 hover:text-white" title="Paramètres">
               <Settings size={18} />
             </button>

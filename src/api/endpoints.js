@@ -153,6 +153,19 @@ export const TellerAPI = {
   dashboard: () => client.get('/api/teller/dashboard'),
 };
 
+export const DocumentAPI = {
+  list: (params) => client.get('/api/documents', { params }),
+  upload: (formData) => client.post('/api/documents/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  remove: (id) => client.delete(`/api/documents/${id}`),
+};
+
+export const NotificationAPI = {
+  list: (unreadOnly) => client.get('/api/notifications', { params: { unreadOnly } }),
+  unreadCount: () => client.get('/api/notifications/unread-count'),
+  markRead: (id) => client.post(`/api/notifications/${id}/read`),
+  markAllRead: () => client.post('/api/notifications/read-all'),
+};
+
 // Agency / Account / Contract / IMF / Users: same REST shape as Collector/Client
 // (backend controllers for these follow the identical Maker-Checker pattern —
 // see the .NET README for how to extend CollectorController's pattern to them).
