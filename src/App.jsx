@@ -67,6 +67,7 @@ function AppRoutes() {
         <Route path="daily-collections" element={<TransactionManagement defaultType="DAILY_COLLECTION" title="Collectes journalières" />} />
         <Route path="deposits" element={<TransactionManagement defaultType="DEPOSIT" title="Dépôts" />} />
         <Route path="withdrawals" element={<TransactionManagement defaultType="WITHDRAWAL" title="Retraits" />} />
+        <Route path="transfers" element={<TransactionManagement defaultType="TRANSFER" title="Transferts" />} />
         <Route path="validations" element={<ValidationQueue />} />
 
         {/* Rapports */}

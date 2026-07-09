@@ -52,6 +52,11 @@ export const TransactionAPI = {
   list: (params) => client.get('/api/transaction', { params }),
   create: (payload) => client.post('/api/transaction', payload),
   dashboardSummary: () => client.get('/api/transaction/dashboard-summary'),
+  clientLookup: (search) => client.get('/api/transaction/client-lookup', { params: { search } }),
+  createImportBatch: (payload) => client.post('/api/transaction/import-batch', payload),
+  pendingImportRows: () => client.get('/api/transaction/import-batch/pending'),
+  approveImportRow: (rowId) => client.post(`/api/transaction/import-batch/row/${rowId}/approve`),
+  rejectImportRow: (rowId, reason) => client.post(`/api/transaction/import-batch/row/${rowId}/reject`, { reason }),
 };
 
 export const CashSessionAPI = {

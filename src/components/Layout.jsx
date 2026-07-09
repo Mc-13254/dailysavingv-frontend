@@ -53,6 +53,7 @@ const NAV_GROUPS = [
       { to: '/daily-collections', label: 'Collectes journalières', icon: CalendarCheck },
       { to: '/deposits', label: 'Dépôts', icon: ArrowDownCircle },
       { to: '/withdrawals', label: 'Retraits', icon: ArrowUpCircle },
+      { to: '/transfers', label: 'Transferts', icon: ArrowLeftRight },
       { to: '/validations', label: 'Validation des opérations', icon: CheckCircle2 },
     ]
   },

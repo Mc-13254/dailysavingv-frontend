@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
-import { CollectorAPI, ClientAPI, CommissionAPI, AgencyAPI, AccountAPI, ContractAPI, IMFAPI, UserAPI, RoleAPI, DepartmentAPI, ContractTypeAPI, AuthAPI } from '../api/endpoints';
+import { CollectorAPI, ClientAPI, CommissionAPI, AgencyAPI, AccountAPI, ContractAPI, IMFAPI, UserAPI, RoleAPI, DepartmentAPI, ContractTypeAPI, AuthAPI, TransactionAPI } from '../api/endpoints';
 
 // Every Tmp/draft record has a different shape depending on the module, so a
 // single "label" extractor tries the field names that actually carry a
@@ -33,6 +33,8 @@ function getLabel(module, r) {
       return r.contractName || r.shortName || '—';
     case 'commissionRanges':
       return r.description || (r.inf != null && r.sup != null ? `${r.inf} — ${r.sup}` : '—');
+    case 'transactionImports':
+      return `${r.transactionType} — ${r.accountID}${r.toAccountID ? ' → ' + r.toAccountID : ''} — ${r.montant?.toLocaleString('fr-FR')}${r.refRowLabel ? ` (${r.refRowLabel})` : ''}`;
     default:
       return '—';
   }
@@ -60,6 +62,12 @@ export default function ValidationQueue() {
     roles: () => RoleAPI.pending(),
     departments: () => DepartmentAPI.pending(),
     contractTypes: () => ContractTypeAPI.pending(),
+    transactionImports: async () => {
+      const res = await TransactionAPI.pendingImportRows();
+      // Import rows use rowID/no requestUser-requestDate pair; normalize to the
+      // shape the shared table/columns expect.
+      return { data: res.data.map((r) => ({ ...r, pendingID: r.rowID, actionType: 'IMPORT', requestUser: '—', requestDate: null })) };
+    },
   };
 
   const approvers = {
@@ -74,6 +82,7 @@ export default function ValidationQueue() {
     roles: (id) => RoleAPI.approve(id),
     departments: (id) => DepartmentAPI.approve(id),
     contractTypes: (id) => ContractTypeAPI.approve(id),
+    transactionImports: (id) => TransactionAPI.approveImportRow(id),
   };
 
   const rejecters = {
@@ -88,6 +97,7 @@ export default function ValidationQueue() {
     roles: (id, reason) => RoleAPI.reject(id, reason),
     departments: (id, reason) => DepartmentAPI.reject(id, reason),
     contractTypes: (id, reason) => ContractTypeAPI.reject(id, reason),
+    transactionImports: (id, reason) => TransactionAPI.rejectImportRow(id, reason),
   };
 
   const load = async () => {
@@ -140,7 +150,7 @@ export default function ValidationQueue() {
     { key: 'label', label: 'Ce qui est validé', render: (r) => <strong className="normal-case">{getLabel(module, r)}</strong> },
     { key: 'actionType', label: 'Action' },
     { key: 'requestUser', label: 'Demandé par' },
-    { key: 'requestDate', label: 'Date de demande', render: (r) => new Date(r.requestDate).toLocaleString('fr-FR') },
+    { key: 'requestDate', label: 'Date de demande', render: (r) => r.requestDate ? new Date(r.requestDate).toLocaleString('fr-FR') : '—' },
     {
       key: 'actions', label: 'Actions', render: (r) => (
         <div style={{ display: 'flex', gap: 6 }}>
@@ -155,6 +165,7 @@ export default function ValidationQueue() {
     ['collectors', 'Collecteurs'], ['clients', 'Clients'], ['commissionRanges', 'Commission Ranges'],
     ['agencies', 'Agences'], ['accounts', 'Comptes'], ['contracts', 'Contrats'],
     ['imf', 'IMF'], ['users', 'Utilisateurs'], ['roles', 'Rôles'], ['departments', 'Départements'], ['contractTypes', 'Types de Contrat'],
+    ['transactionImports', 'Imports de transactions'],
   ];
 
   const confirmingRow = rows.find((r) => r.pendingID === confirming);
