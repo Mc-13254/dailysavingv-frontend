@@ -106,6 +106,17 @@ export const ReportsAPI = {
   dailyCollectionStats: () => client.get('/api/reports/daily-collections/stats'),
 };
 
+export const SecurityAPI = {
+  failedLogins: (params) => client.get('/api/security/failed-logins', { params }),
+  failedLoginStats: () => client.get('/api/security/failed-logins/stats'),
+  lockedAccounts: () => client.get('/api/security/locked-accounts'),
+  lockAccount: (codeUser, reason) => client.post(`/api/security/lock-account/${codeUser}`, { reason }),
+  unlockAccount: (codeUser) => client.post(`/api/security/unlock-account/${codeUser}`),
+  sessions: () => client.get('/api/security/sessions'),
+  sessionStats: () => client.get('/api/security/sessions/stats'),
+  terminateSession: (tokenId, reason) => client.post(`/api/security/sessions/${tokenId}/terminate`, { reason }),
+};
+
 // Agency / Account / Contract / IMF / Users: same REST shape as Collector/Client
 // (backend controllers for these follow the identical Maker-Checker pattern —
 // see the .NET README for how to extend CollectorController's pattern to them).

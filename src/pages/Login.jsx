@@ -17,8 +17,8 @@ export default function Login() {
     try {
       await login(username, password);
       navigate('/');
-    } catch {
-      setError('Identifiants invalides. Veuillez réessayer.');
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Identifiants invalides. Veuillez réessayer.');
     } finally {
       setLoading(false);
     }

@@ -34,6 +34,8 @@ import FinancialReports from './pages/FinancialReports';
 import AuditReports from './pages/AuditReports';
 import Receipts from './pages/Receipts';
 import DailyCollectionReports from './pages/DailyCollectionReports';
+import ActiveSessions from './pages/ActiveSessions';
+import FailedLoginAttempts from './pages/FailedLoginAttempts';
 import ComingSoon from './pages/ComingSoon';
 
 function ProtectedRoute({ children }) {
@@ -98,9 +100,8 @@ function AppRoutes() {
         <Route path="reports/audit" element={<AuditReports />} />
 
         {/* Sécurité */}
-        <Route path="security/logins" element={<ComingSoon title="Journal des connexions" description="Basé sur la table Activite déjà alimentée par chaque login — page à construire." />} />
-        <Route path="security/history" element={<ComingSoon title="Historique" description="Basé sur HistTransactions / HistCalculComis déjà enregistrés — page à construire." />} />
-        <Route path="security/audit" element={<ComingSoon title="Audit" />} />
+        <Route path="security/sessions" element={<ActiveSessions />} />
+        <Route path="security/failed-logins" element={<FailedLoginAttempts />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

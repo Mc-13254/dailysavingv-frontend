@@ -76,9 +76,9 @@ const NAV_GROUPS = [
   },
   {
     label: 'Sécurité', icon: ShieldAlert, base: '/security', items: [
-      { to: '/security/logins', label: 'Journal des connexions', icon: LogIn },
-      { to: '/security/history', label: 'Historique', icon: History },
-      { to: '/security/audit', label: 'Audit', icon: ScrollText },
+      { to: '/security/sessions', label: 'Active Sessions', icon: LogIn },
+      { to: '/security/failed-logins', label: 'Failed Login Attempts', icon: ShieldAlert },
+      { to: '/reports/audit', label: 'Audit & Login History', icon: ScrollText },
     ]
   },
 ];
