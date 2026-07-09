@@ -19,9 +19,19 @@ function Card({ icon: Icon, label, value, accent, sub }) {
 
 export default function ExecutiveDashboard() {
   const [data, setData] = useState(null);
+  const [error, setError] = useState('');
 
-  useEffect(() => { ReportsAPI.executive().then(({ data }) => setData(data)).catch(() => {}); }, []);
+  useEffect(() => {
+    ReportsAPI.executive()
+      .then(({ data }) => setData(data))
+      .catch((err) => setError(err?.response?.data?.message || err?.response?.data?.title || "Échec du chargement du tableau de bord exécutif."));
+  }, []);
 
+  if (error) return (
+    <div className="panel">
+      <div className="error-banner">{error}</div>
+    </div>
+  );
   if (!data) return <div className="panel"><div className="empty-state">Chargement du tableau de bord exécutif…</div></div>;
 
   return (
