@@ -17,6 +17,24 @@ const TYPE_LABELS = {
 
 const emptyForm = { transactionType: 'DAILY_COLLECTION', montant: '', remitterName: '', beneficiaryName: '' };
 
+// ASP.NET's built-in model-validation (400 Bad Request before the request even
+// reaches the controller) returns { errors: { Field: ["message"] }, title, status }
+// instead of our own { message } shape. Without this, those failures showed only
+// the generic fallback text with no clue what was actually wrong.
+function extractErrorMessage(err, fallback) {
+  const data = err?.response?.data;
+  if (!data) return fallback;
+  if (data.message) return data.message;
+  if (data.errors) {
+    const firstField = Object.values(data.errors)[0];
+    const firstMessage = Array.isArray(firstField) ? firstField[0] : firstField;
+    if (firstMessage) return firstMessage;
+  }
+  if (data.title) return data.title;
+  if (typeof data === 'string') return data;
+  return fallback;
+}
+
 function ClientSearchBox({ label, onPick }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -165,7 +183,7 @@ export default function TransactionManagement({ defaultType, title }) {
       setReceipt(data);
       load();
     } catch (err) {
-      setError(err.response?.data?.message || "Erreur lors de l'enregistrement de la transaction.");
+      setError(extractErrorMessage(err, "Erreur lors de l'enregistrement de la transaction."));
     } finally {
       setSubmitting(false);
     }
@@ -232,7 +250,7 @@ export default function TransactionManagement({ defaultType, title }) {
       setShowImport(false);
       load();
     } catch (err) {
-      setImportError(err.response?.data?.message || "Échec de l'import.");
+      setImportError(extractErrorMessage(err, "Échec de l'import."));
     } finally {
       setImportSubmitting(false);
     }
