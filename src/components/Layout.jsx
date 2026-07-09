@@ -59,10 +59,19 @@ const NAV_GROUPS = [
   },
   {
     label: 'Rapports', icon: BarChart3, base: '/reports', items: [
-      { to: '/reports/collectors', label: 'Rapport des collecteurs', icon: UserCog },
-      { to: '/reports/clients', label: 'Rapport des clients', icon: Users },
-      { to: '/reports/agencies', label: 'Rapport des agences', icon: Building2 },
-      { to: '/reports/commissions', label: 'Commissions', icon: Percent },
+      { to: '/reports/center', label: 'Report Center', icon: Home },
+      { to: '/reports/transaction-history', label: 'Transaction History', icon: History },
+      { to: '/reports/receipts', label: 'Receipts', icon: FileText },
+      { to: '/reports/daily-collections', label: 'Daily Collection Reports', icon: CalendarCheck },
+      { to: '/reports/collectors', label: 'Collector Reports', icon: UserCog },
+      { to: '/reports/clients', label: 'Client Reports', icon: Users },
+      { to: '/reports/accounts', label: 'Account Reports', icon: Wallet },
+      { to: '/reports/contracts', label: 'Contract Reports', icon: FileSignature },
+      { to: '/reports/commissions', label: 'Commission Reports', icon: Percent },
+      { to: '/reports/cash-sessions', label: 'Cash Session Reports', icon: Clock },
+      { to: '/reports/agencies', label: 'Agency Reports', icon: Building2 },
+      { to: '/reports/financial', label: 'Financial Reports', icon: TrendingUp },
+      { to: '/reports/audit', label: 'Audit Reports', icon: ScrollText },
     ]
   },
   {

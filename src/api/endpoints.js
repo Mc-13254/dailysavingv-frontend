@@ -69,6 +69,13 @@ export const CashSessionAPI = {
   saveCalendar: (agenceId, payload) => client.put('/api/cashsession/business-calendar', payload, { params: { agenceId } }),
 };
 
+export const ReportsAPI = {
+  transactionHistory: (params) => client.get('/api/reports/transaction-history', { params }),
+  transactionDetail: (id) => client.get(`/api/reports/transaction-history/${id}`),
+  transactionStats: () => client.get('/api/reports/transaction-history/stats'),
+  center: () => client.get('/api/reports/center'),
+};
+
 // Agency / Account / Contract / IMF / Users: same REST shape as Collector/Client
 // (backend controllers for these follow the identical Maker-Checker pattern —
 // see the .NET README for how to extend CollectorController's pattern to them).

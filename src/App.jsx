@@ -22,6 +22,8 @@ import NumberingParameterManagement from './pages/NumberingParameterManagement';
 import ValidationQueue from './pages/ValidationQueue';
 import TransactionManagement from './pages/TransactionManagement';
 import CashSessionManagement from './pages/CashSessionManagement';
+import ReportCenter from './pages/ReportCenter';
+import TransactionHistory from './pages/TransactionHistory';
 import ComingSoon from './pages/ComingSoon';
 
 function ProtectedRoute({ children }) {
@@ -71,10 +73,19 @@ function AppRoutes() {
         <Route path="validations" element={<ValidationQueue />} />
 
         {/* Rapports */}
+        <Route path="reports/center" element={<ReportCenter />} />
+        <Route path="reports/transaction-history" element={<TransactionHistory />} />
         <Route path="reports/collectors" element={<ComingSoon title="Rapport des collecteurs" />} />
         <Route path="reports/clients" element={<ComingSoon title="Rapport des clients" />} />
         <Route path="reports/agencies" element={<ComingSoon title="Rapport des agences" />} />
         <Route path="reports/commissions" element={<ComingSoon title="Rapport des commissions" />} />
+        <Route path="reports/receipts" element={<ComingSoon title="Receipts" />} />
+        <Route path="reports/daily-collections" element={<ComingSoon title="Daily Collection Reports" />} />
+        <Route path="reports/accounts" element={<ComingSoon title="Account Reports" />} />
+        <Route path="reports/contracts" element={<ComingSoon title="Contract Reports" />} />
+        <Route path="reports/cash-sessions" element={<ComingSoon title="Cash Session Reports" />} />
+        <Route path="reports/financial" element={<ComingSoon title="Financial Reports" />} />
+        <Route path="reports/audit" element={<ComingSoon title="Audit Reports" />} />
 
         {/* Sécurité */}
         <Route path="security/logins" element={<ComingSoon title="Journal des connexions" description="Basé sur la table Activite déjà alimentée par chaque login — page à construire." />} />
