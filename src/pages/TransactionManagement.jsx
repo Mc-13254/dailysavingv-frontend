@@ -5,6 +5,7 @@ import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 import WideModal from '../components/WideModal';
 import ExportDropdown from '../components/ExportDropdown';
+import DenominationCounter, { denominationCountsToPayload, denominationTotal } from '../components/DenominationCounter';
 import { TransactionAPI } from '../api/endpoints';
 
 const TYPE_LABELS = {
@@ -15,7 +16,7 @@ const TYPE_LABELS = {
   TRANSFER: 'Transfert',
 };
 
-const emptyForm = { transactionType: 'DAILY_COLLECTION', montant: '', remitterName: '', beneficiaryName: '' };
+const emptyForm = { transactionType: 'DAILY_COLLECTION', montant: '', remitterName: '', beneficiaryName: '', paymentMethod: 'CASH' };
 
 // ASP.NET's built-in model-validation (400 Bad Request before the request even
 // reaches the controller) returns { errors: { Field: ["message"] }, title, status }
@@ -126,6 +127,7 @@ export default function TransactionManagement({ defaultType, title }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [receipt, setReceipt] = useState(null);
+  const [cashCounts, setCashCounts] = useState({});
 
   const [showImport, setShowImport] = useState(false);
   const [importRows, setImportRows] = useState([]);
@@ -150,6 +152,7 @@ export default function TransactionManagement({ defaultType, title }) {
     setForm({ ...emptyForm, transactionType: defaultType || 'DAILY_COLLECTION' });
     setSourceClient(null); setSourceAccountId('');
     setDestClient(null); setDestAccountId('');
+    setCashCounts({});
     setError('');
     setReceipt(null);
     setShowModal(true);
@@ -168,8 +171,16 @@ export default function TransactionManagement({ defaultType, title }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitting(true);
     setError('');
+
+    const isCash = form.paymentMethod === 'CASH';
+    const cashBreakdown = isCash ? denominationCountsToPayload(cashCounts) : null;
+    if (isCash && cashBreakdown && denominationTotal(cashCounts) !== Number(form.montant)) {
+      setError("Le détail des billets/pièces ne correspond pas au montant saisi.");
+      return;
+    }
+
+    setSubmitting(true);
     try {
       const { data } = await TransactionAPI.create({
         transactionType: form.transactionType,
@@ -179,6 +190,8 @@ export default function TransactionManagement({ defaultType, title }) {
         montant: Number(form.montant),
         remitterName: form.remitterName || null,
         beneficiaryName: form.beneficiaryName || null,
+        paymentMethod: form.paymentMethod,
+        cashBreakdown,
       });
       setReceipt(data);
       load();
@@ -342,6 +355,22 @@ export default function TransactionManagement({ defaultType, title }) {
                 <div className="form-group"><label>Remettant</label><input value={form.remitterName} onChange={(e) => setForm({ ...form, remitterName: e.target.value })} /></div>
                 <div className="form-group"><label>Bénéficiaire</label><input value={form.beneficiaryName} onChange={(e) => setForm({ ...form, beneficiaryName: e.target.value })} /></div>
               </div>
+
+              <div className="form-group mt-3">
+                <label>Mode de paiement</label>
+                <select value={form.paymentMethod} onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}>
+                  <option value="CASH">Espèces</option>
+                  <option value="MOBILE_MONEY">Mobile Money</option>
+                  <option value="BANK_TRANSFER">Virement bancaire</option>
+                  <option value="CHEQUE">Chèque</option>
+                </select>
+              </div>
+
+              {form.paymentMethod === 'CASH' && (
+                <div className="mt-3">
+                  <DenominationCounter counts={cashCounts} onChange={setCashCounts} targetAmount={form.montant ? Number(form.montant) : null} />
+                </div>
+              )}
             </form>
           )}
         </WideModal>

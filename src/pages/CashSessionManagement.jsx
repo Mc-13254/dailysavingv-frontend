@@ -4,6 +4,7 @@ import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 import WideModal from '../components/WideModal';
 import StatusBadge from '../components/StatusBadge';
+import DenominationCounter, { denominationCountsToPayload, denominationTotal } from '../components/DenominationCounter';
 import { CashSessionAPI } from '../api/endpoints';
 
 const fmt = (n) => new Intl.NumberFormat('fr-FR').format(n || 0);
@@ -21,6 +22,7 @@ export default function CashSessionManagement() {
 
   const [showClose, setShowClose] = useState(false);
   const [physicalCash, setPhysicalCash] = useState('');
+  const [closeCashCounts, setCloseCashCounts] = useState({});
   const [closeComment, setCloseComment] = useState('');
   const [varianceReason, setVarianceReason] = useState('');
 
@@ -58,10 +60,13 @@ export default function CashSessionManagement() {
 
   const handleClose = async () => {
     setError('');
-    if (!physicalCash) { setError('Indiquez le montant physique compté en caisse.'); return; }
+    const countedTotal = denominationTotal(closeCashCounts);
+    const finalPhysicalCash = countedTotal > 0 ? countedTotal : Number(physicalCash);
+    if (!finalPhysicalCash) { setError('Comptez la caisse (billets/pièces) ou indiquez le montant physique.'); return; }
     try {
       await CashSessionAPI.close({
-        physicalCash: Number(physicalCash),
+        physicalCash: finalPhysicalCash,
+        physicalCashBreakdown: denominationCountsToPayload(closeCashCounts),
         comment: closeComment || null,
         varianceReason: varianceReason || null,
       });
@@ -132,7 +137,7 @@ export default function CashSessionManagement() {
           <div className="form-card">
             <div className="form-card-title">Session en cours — {session.sessionNumber}</div>
             <p className="text-xs text-gray-500 normal-case mb-3">Ouverte le {new Date(session.openingDate).toLocaleString('fr-FR')} par {session.userFullName}</p>
-            <button className="btn btn-danger" onClick={() => { setPhysicalCash(''); setCloseComment(''); setVarianceReason(''); setError(''); setShowClose(true); }}>
+            <button className="btn btn-danger" onClick={() => { setPhysicalCash(''); setCloseCashCounts({}); setCloseComment(''); setVarianceReason(''); setError(''); setShowClose(true); }}>
               <StopCircle size={16} /> Clôturer ma session de caisse
             </button>
           </div>
@@ -159,7 +164,7 @@ export default function CashSessionManagement() {
       )}
 
       {showClose && (
-        <Modal title="Clôturer la session de caisse" onClose={() => setShowClose(false)} footer={
+        <WideModal title="Clôturer la session de caisse" onClose={() => setShowClose(false)} footer={
           <>
             <button className="btn btn-outline" onClick={() => setShowClose(false)}>Annuler</button>
             <button className="btn btn-primary" onClick={handleClose}>Clôturer</button>
@@ -167,9 +172,18 @@ export default function CashSessionManagement() {
         }>
           {error && <div className="error-banner">{error}</div>}
           <p className="text-xs text-gray-600 normal-case mb-3">Caisse attendue (calculée) : <strong>{fmt(dashboard?.currentCash)}</strong></p>
-          <div className="form-group">
-            <label>Montant physique compté *</label>
-            <input type="number" required value={physicalCash} onChange={(e) => setPhysicalCash(e.target.value)} />
+
+          <DenominationCounter counts={closeCashCounts} onChange={setCloseCashCounts} />
+
+          <div className="form-group mt-3">
+            <label>Montant physique compté {denominationTotal(closeCashCounts) > 0 ? '(calculé depuis le détail ci-dessus)' : '*'}</label>
+            <input
+              type="number"
+              required={denominationTotal(closeCashCounts) === 0}
+              disabled={denominationTotal(closeCashCounts) > 0}
+              value={denominationTotal(closeCashCounts) > 0 ? denominationTotal(closeCashCounts) : physicalCash}
+              onChange={(e) => setPhysicalCash(e.target.value)}
+            />
           </div>
           <div className="form-group">
             <label>Motif de l'écart (si applicable)</label>
@@ -179,7 +193,7 @@ export default function CashSessionManagement() {
             <label>Commentaire</label>
             <textarea value={closeComment} onChange={(e) => setCloseComment(e.target.value)} />
           </div>
-        </Modal>
+        </WideModal>
       )}
 
       {showHistory && (
