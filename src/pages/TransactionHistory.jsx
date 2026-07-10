@@ -54,6 +54,13 @@ export default function TransactionHistory() {
     { key: 'statut', label: 'Statut', render: (r) => <StatusBadge status={r.statut} /> },
     { key: 'dateTransaction', label: 'Date', render: (r) => new Date(r.dateTransaction).toLocaleString('fr-FR') },
     {
+      key: 'fraudScore', label: 'Risque', render: (r) => r.fraudRiskLevel && r.fraudRiskLevel !== 'LOW' ? (
+        <span className={`badge ${r.fraudRiskLevel === 'CRITICAL' || r.fraudRiskLevel === 'HIGH' ? 'badge-danger' : 'badge-warning'}`} title={`Score de fraude: ${r.fraudScore}/100`}>
+          ⚠ {r.fraudRiskLevel}
+        </span>
+      ) : '—'
+    },
+    {
       key: 'actions', label: 'Actions', sortable: false, render: (r) => (
         <button className="btn-icon" title="Voir" onClick={() => openDetail(r)}><Eye size={15} /></button>
       )

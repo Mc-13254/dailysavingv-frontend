@@ -9,11 +9,13 @@ import {
   ArrowLeftRight, Activity,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import NotificationBell from './NotificationBell';
 
 // Sidebar structure follows the business hierarchy:
 // IMF -> Agences -> Utilisateurs -> Collecteurs -> Paramètres métier -> Clients -> Opérations -> Rapports -> Sécurité
 const NAV_GROUPS = [
   { to: '/', label: 'Tableau de bord', icon: LayoutDashboard, standalone: true },
+  { to: '/executive-dashboard', label: 'Executive Dashboard', icon: TrendingUp, standalone: true },
 
   {
     label: 'Administration', icon: ShieldCheck, base: '/admin', items: [
@@ -48,8 +50,24 @@ const NAV_GROUPS = [
     ]
   },
   {
+    label: 'Prêts', icon: Landmark, base: '/loans', items: [
+      { to: '/loans', label: 'Loan Management', icon: Landmark },
+    ]
+  },
+  {
+    label: 'Documents', icon: FileText, base: '/documents', items: [
+      { to: '/documents', label: 'Document Management', icon: FileText },
+    ]
+  },
+  {
+    label: 'Comptabilité', icon: BarChart3, base: '/accounting', items: [
+      { to: '/accounting', label: 'Accounting Management', icon: BarChart3 },
+    ]
+  },
+  {
     label: 'Opérations', icon: ArrowLeftRight, base: '/operations', items: [
       { to: '/cash-session', label: 'Session de caisse', icon: Clock },
+      { to: '/teller', label: 'Teller Management (Coffre)', icon: Landmark },
       { to: '/daily-collections', label: 'Collectes journalières', icon: CalendarCheck },
       { to: '/deposits', label: 'Dépôts', icon: ArrowDownCircle },
       { to: '/withdrawals', label: 'Retraits', icon: ArrowUpCircle },
@@ -77,6 +95,7 @@ const NAV_GROUPS = [
   {
     label: 'Sécurité', icon: ShieldAlert, base: '/security', items: [
       { to: '/security/sessions', label: 'Active Sessions', icon: LogIn },
+      { to: '/security/fraud-detection', label: 'Fraud Detection', icon: ShieldAlert },
       { to: '/security/failed-logins', label: 'Failed Login Attempts', icon: ShieldAlert },
       { to: '/reports/audit', label: 'Audit & Login History', icon: ScrollText },
       { to: '/security/settings', label: 'Password Policy & API', icon: KeyRound },
@@ -215,6 +234,7 @@ export default function Layout() {
           </span>
 
           <div className="ml-auto flex items-center gap-4">
+            <NotificationBell />
             <button className="text-white/80 hover:text-white" title="Paramètres">
               <Settings size={18} />
             </button>

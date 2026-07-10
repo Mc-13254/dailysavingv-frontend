@@ -39,6 +39,12 @@ import FailedLoginAttempts from './pages/FailedLoginAttempts';
 import ChangePassword from './pages/ChangePassword';
 import SecuritySettings from './pages/SecuritySettings';
 import SystemHealth from './pages/SystemHealth';
+import LoanManagement from './pages/LoanManagement';
+import TellerManagement from './pages/TellerManagement';
+import ExecutiveDashboard from './pages/ExecutiveDashboard';
+import DocumentManagement from './pages/DocumentManagement';
+import AccountingManagement from './pages/AccountingManagement';
+import FraudDetection from './pages/FraudDetection';
 import ComingSoon from './pages/ComingSoon';
 
 function ProtectedRoute({ children, allowPendingChange = false }) {
@@ -79,6 +85,12 @@ function AppRoutes() {
         {/* Prospects module removed — not used */}
         <Route path="clients" element={<ClientManagement />} />
         <Route path="accounts" element={<AccountManagement />} />
+        <Route path="loans" element={<LoanManagement />} />
+        <Route path="teller" element={<TellerManagement />} />
+        <Route path="executive-dashboard" element={<ExecutiveDashboard />} />
+        <Route path="documents" element={<DocumentManagement />} />
+        <Route path="accounting" element={<AccountingManagement />} />
+        <Route path="security/fraud-detection" element={<FraudDetection />} />
         <Route path="contracts" element={<ContractManagement />} />
 
         {/* Opérations */}
