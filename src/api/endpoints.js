@@ -141,6 +141,8 @@ export const LoanAPI = {
   repay: (id, amount) => client.post(`/api/loans/${id}/repay`, { amount }),
   writeOff: (id, reason) => client.post(`/api/loans/${id}/write-off`, { reason }),
   dashboard: () => client.get('/api/loans/dashboard'),
+  clientAssessment: (clientId) => client.get(`/api/loans/client-assessment/${clientId}`),
+  uploadGuarantorFile: (formData) => client.post('/api/loans/applications/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
 };
 
 export const TellerAPI = {
@@ -217,6 +219,7 @@ export const AccountAPI = {
   freeze: (id, reason) => client.post(`/api/accounts/${id}/freeze`, { reason }),
   unfreeze: (id) => client.post(`/api/accounts/${id}/unfreeze`),
   close: (id, reason) => client.post(`/api/accounts/${id}/close`, { reason }),
+  applyAnnualInterest: (id) => client.post(`/api/accounts/${id}/apply-annual-interest`),
   statement: (id, params) => client.get(`/api/accounts/${id}/statement`, { params }),
 };
 

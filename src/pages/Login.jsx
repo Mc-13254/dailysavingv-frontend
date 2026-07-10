@@ -28,7 +28,7 @@ export default function Login() {
     <div className="login-screen">
       <div className="login-card">
         <div className="login-logo">
-          <div className="login-logo-badge">DSV</div>
+          <img src="/logo.png" alt="AnyCollect" style={{ width: 64, height: 64, objectFit: 'contain' }} />
         </div>
         <div className="login-title">DailySavingV</div>
         <div className="login-subtitle">Gestion Microfinance & Épargne Journalière</div>

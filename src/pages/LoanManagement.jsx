@@ -6,6 +6,7 @@ import WideModal from '../components/WideModal';
 import StatusBadge from '../components/StatusBadge';
 import ExportDropdown from '../components/ExportDropdown';
 import { LoanAPI, ClientAPI } from '../api/endpoints';
+import { API_BASE_URL } from '../api/client';
 
 const fmt = (n) => new Intl.NumberFormat('fr-FR').format(n || 0);
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
@@ -24,7 +25,14 @@ export default function LoanManagement() {
   const [clientSearch, setClientSearch] = useState('');
   const [clientResults, setClientResults] = useState([]);
   const [selectedClient, setSelectedClient] = useState(null);
-  const [appForm, setAppForm] = useState({ loanProductID: '', requestedAmount: '', requestedTermMonths: '', purpose: '' });
+  const [appForm, setAppForm] = useState({
+    loanProductID: '', requestedAmount: '', requestedTermMonths: '', purpose: '',
+    guarantorName: '', guarantorPhone: '', guarantorAddress: '', guarantorIDNumber: '',
+    guarantorPhotoUrl: '', guarantorSignatureUrl: '', collateralDescription: '',
+  });
+  const [assessment, setAssessment] = useState(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [uploadingSignature, setUploadingSignature] = useState(false);
   const [error, setError] = useState('');
 
   const [approving, setApproving] = useState(null);
@@ -66,8 +74,12 @@ export default function LoanManagement() {
   };
 
   const openNewApp = () => {
-    setSelectedClient(null); setClientSearch(''); setClientResults([]);
-    setAppForm({ loanProductID: products[0]?.loanProductID || '', requestedAmount: '', requestedTermMonths: '', purpose: '' });
+    setSelectedClient(null); setClientSearch(''); setClientResults([]); setAssessment(null);
+    setAppForm({
+      loanProductID: products[0]?.loanProductID || '', requestedAmount: '', requestedTermMonths: '', purpose: '',
+      guarantorName: '', guarantorPhone: '', guarantorAddress: '', guarantorIDNumber: '',
+      guarantorPhotoUrl: '', guarantorSignatureUrl: '', collateralDescription: '',
+    });
     setError(''); setShowNewApp(true);
   };
 
@@ -80,11 +92,32 @@ export default function LoanManagement() {
         requestedAmount: Number(appForm.requestedAmount),
         requestedTermMonths: Number(appForm.requestedTermMonths),
         purpose: appForm.purpose || null,
+        guarantorName: appForm.guarantorName || null,
+        guarantorPhone: appForm.guarantorPhone || null,
+        guarantorAddress: appForm.guarantorAddress || null,
+        guarantorIDNumber: appForm.guarantorIDNumber || null,
+        guarantorPhotoUrl: appForm.guarantorPhotoUrl || null,
+        guarantorSignatureUrl: appForm.guarantorSignatureUrl || null,
+        collateralDescription: appForm.collateralDescription || null,
       });
       setShowNewApp(false);
       loadAll();
     } catch (err) {
       setError(err?.response?.data?.message || 'Échec de la soumission.');
+    }
+  };
+
+  const uploadGuarantorFile = async (file, field, setUploading) => {
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const { data } = await LoanAPI.uploadGuarantorFile(formData);
+      setAppForm((f) => ({ ...f, [field]: data.url }));
+    } catch {
+      setError("Échec de l'envoi du fichier.");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -273,7 +306,7 @@ export default function LoanManagement() {
             {!selectedClient && clientResults.length > 0 && (
               <ul className="absolute z-50 left-0 right-0 mt-1 bg-white border rounded-md shadow-lg max-h-48 overflow-y-auto text-xs">
                 {clientResults.map((c) => (
-                  <li key={c.clientID} className="px-2.5 py-1.5 cursor-pointer hover:bg-gray-50" onClick={() => { setSelectedClient(c); setClientResults([]); }}>
+                  <li key={c.clientID} className="px-2.5 py-1.5 cursor-pointer hover:bg-gray-50" onClick={async () => { setSelectedClient(c); setClientResults([]); const { data } = await LoanAPI.clientAssessment(c.clientID); setAssessment(data); }}>
                     {c.clientID} — {c.nom} {c.prenom}
                   </li>
                 ))}
@@ -291,6 +324,49 @@ export default function LoanManagement() {
             <div className="form-group"><label>Durée (mois) *</label><input type="number" value={appForm.requestedTermMonths} onChange={(e) => setAppForm({ ...appForm, requestedTermMonths: e.target.value })} /></div>
           </div>
           <div className="form-group mt-3"><label>Objet du prêt</label><textarea value={appForm.purpose} onChange={(e) => setAppForm({ ...appForm, purpose: e.target.value })} /></div>
+
+          {assessment && (
+            <div className="form-card mt-3">
+              <div className="flex items-center justify-between">
+                <div className="form-card-title">Évaluation du client (depuis son entrée)</div>
+                <span className={`badge ${assessment.assessmentVerdict === 'Bon profil' ? 'badge-success' : assessment.assessmentVerdict.includes('examiner') ? 'badge-danger' : 'badge-warning'}`}>{assessment.assessmentVerdict}</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs mt-2">
+                <div>Client depuis: <strong>{assessment.daysAsClient} j</strong></div>
+                <div>Collectes: <strong>{assessment.totalTransactionCount}</strong></div>
+                <div>Total collecté: <strong>{fmt(assessment.totalCollected)}</strong></div>
+                <div>Moyenne/mois: <strong>{fmt(assessment.averageMonthlyCollection)}</strong></div>
+                <div>Prêts antérieurs: <strong>{assessment.priorLoanCount}</strong></div>
+                <div>Soldés normalement: <strong>{assessment.priorLoansCompletedOk}</strong></div>
+                <div>Passés en perte: <strong>{assessment.priorLoansWrittenOff}</strong></div>
+                <div>Échéances en retard: <strong>{assessment.priorLoansOverdueInstallments}</strong></div>
+              </div>
+              <ul className="text-[11px] text-gray-500 normal-case mt-2 list-disc list-inside">
+                {assessment.assessmentNotes.map((n, i) => <li key={i}>{n}</li>)}
+              </ul>
+            </div>
+          )}
+
+          <div className="form-card mt-3">
+            <div className="form-card-title">Garant</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+              <div className="form-group"><label>Nom complet du garant</label><input value={appForm.guarantorName} onChange={(e) => setAppForm({ ...appForm, guarantorName: e.target.value })} /></div>
+              <div className="form-group"><label>Téléphone du garant</label><input value={appForm.guarantorPhone} onChange={(e) => setAppForm({ ...appForm, guarantorPhone: e.target.value })} /></div>
+              <div className="form-group"><label>Adresse du garant</label><input value={appForm.guarantorAddress} onChange={(e) => setAppForm({ ...appForm, guarantorAddress: e.target.value })} /></div>
+              <div className="form-group"><label>N° CNI du garant</label><input value={appForm.guarantorIDNumber} onChange={(e) => setAppForm({ ...appForm, guarantorIDNumber: e.target.value })} /></div>
+              <div className="form-group">
+                <label>Photo du garant</label>
+                <input type="file" accept="image/*" disabled={uploadingPhoto} onChange={(e) => e.target.files[0] && uploadGuarantorFile(e.target.files[0], 'guarantorPhotoUrl', setUploadingPhoto)} />
+                {appForm.guarantorPhotoUrl && <img src={`${API_BASE_URL}${appForm.guarantorPhotoUrl}`} alt="garant" className="h-12 w-12 object-cover rounded mt-1 border" />}
+              </div>
+              <div className="form-group">
+                <label>Signature du garant</label>
+                <input type="file" accept="image/*" disabled={uploadingSignature} onChange={(e) => e.target.files[0] && uploadGuarantorFile(e.target.files[0], 'guarantorSignatureUrl', setUploadingSignature)} />
+                {appForm.guarantorSignatureUrl && <img src={`${API_BASE_URL}${appForm.guarantorSignatureUrl}`} alt="signature" className="h-12 w-12 object-cover rounded mt-1 border" />}
+              </div>
+            </div>
+            <div className="form-group mt-2"><label>Garantie / Collatéral (description)</label><input value={appForm.collateralDescription} onChange={(e) => setAppForm({ ...appForm, collateralDescription: e.target.value })} /></div>
+          </div>
           <div className="flex justify-end gap-2 mt-4">
             <button className="btn btn-outline" onClick={() => setShowNewApp(false)}>Annuler</button>
             <button className="btn btn-primary" disabled={!selectedClient || !appForm.requestedAmount || !appForm.requestedTermMonths} onClick={submitApp}>Soumettre</button>

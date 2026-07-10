@@ -159,3 +159,29 @@ table.data-table { @apply table-auto min-w-full w-full border-collapse text-left
 .date-range-tabs { @apply flex gap-1 bg-gray-200 rounded-md p-0.5 flex-wrap; }
 .date-range-tabs .tab { @apply px-3 py-1 text-xs rounded-md text-gray-700 font-medium normal-case; }
 .date-range-tabs .tab.active { @apply bg-gradient-to-r from-brand-blue to-brand-green text-white; }
+
+/* ---------- Dark mode ----------
+   Pragmatic global override rather than adding dark: variants to every
+   component — covers the structural surfaces (background, panels, cards,
+   inputs, tables, sidebar) consistently across the whole app in one place. */
+.dark body { background-color: #0f172a; color: #e2e8f0; }
+.dark aside { background-color: #111827 !important; border-color: #1f2937 !important; }
+.dark aside * { color: #cbd5e1; }
+.dark aside .bg-brand-blue { background-color: #1E90FF !important; }
+.dark .panel, .dark .form-card { background-color: #1e293b !important; border-color: #334155 !important; color: #e2e8f0; }
+.dark .panel-title { color: #6ee7b7 !important; }
+.dark .panel-subtitle, .dark .text-gray-400, .dark .text-gray-500 { color: #94a3b8 !important; }
+.dark input, .dark select, .dark textarea {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+.dark table { color: #e2e8f0; }
+.dark thead, .dark .text-gray-400 { color: #94a3b8 !important; }
+.dark tbody tr { border-color: #334155 !important; }
+.dark tbody tr:hover { background-color: #263449 !important; }
+.dark .bg-gray-50 { background-color: #0f172a !important; }
+.dark .bg-white { background-color: #1e293b !important; }
+.dark .border-gray-100, .dark .border-gray-200 { border-color: #334155 !important; }
+.dark .btn-outline { border-color: #475569 !important; color: #e2e8f0 !important; }
+.dark .kpi-card { background-color: #1e293b !important; border-color: #334155 !important; }

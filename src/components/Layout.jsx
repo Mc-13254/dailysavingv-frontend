@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, ChevronDown, ChevronUp, User, Building2, Home, BadgeCheck,
@@ -6,7 +6,7 @@ import {
   Percent, Layers, Hash, UserCog, UserPlus, TrendingUp, Wallet,
   FileText, CalendarCheck, ArrowDownCircle, ArrowUpCircle, CheckCircle2,
   BarChart3, LogIn, History, ScrollText, ShieldAlert, SlidersHorizontal,
-  ArrowLeftRight, Activity,
+  ArrowLeftRight, Activity, Sun, Moon,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import NotificationBell from './NotificationBell';
@@ -184,6 +184,31 @@ export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('dsv_theme') === 'dark');
+  const [showIdleWarning, setShowIdleWarning] = useState(false);
+
+  const IDLE_WARNING_AFTER_MS = 10 * 60 * 1000; // 10 min of inactivity triggers the prompt
+  const IDLE_TIMEOUT_REF = useRef(null);
+
+  useEffect(() => {
+    const resetTimer = () => {
+      if (IDLE_TIMEOUT_REF.current) clearTimeout(IDLE_TIMEOUT_REF.current);
+      IDLE_TIMEOUT_REF.current = setTimeout(() => setShowIdleWarning(true), IDLE_WARNING_AFTER_MS);
+    };
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+    events.forEach((e) => window.addEventListener(e, resetTimer));
+    resetTimer();
+    return () => {
+      events.forEach((e) => window.removeEventListener(e, resetTimer));
+      if (IDLE_TIMEOUT_REF.current) clearTimeout(IDLE_TIMEOUT_REF.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode);
+    localStorage.setItem('dsv_theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
+
   const handleLogout = async () => {
     await logout();
     navigate('/login');
@@ -198,8 +223,8 @@ export default function Layout() {
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
         <div className="px-5 py-5 bg-brand-blue flex items-center gap-2">
-          <div className="w-9 h-9 rounded-md bg-white/15 border border-white/30 flex items-center justify-center text-white font-bold text-sm">
-            AC
+          <div className="w-9 h-9 rounded-md bg-white flex items-center justify-center overflow-hidden">
+            <img src="/logo.png" alt="AnyCollect" className="w-full h-full object-contain" />
           </div>
           <div className="text-lg font-extrabold normal-case text-white">
             Any<span className="text-white/80">collect</span>
@@ -235,6 +260,9 @@ export default function Layout() {
 
           <div className="ml-auto flex items-center gap-4">
             <NotificationBell />
+            <button className="text-white/80 hover:text-white" title={darkMode ? 'Mode clair' : 'Mode sombre'} onClick={() => setDarkMode(!darkMode)}>
+              {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
             <button className="text-white/80 hover:text-white" title="Paramètres">
               <Settings size={18} />
             </button>
@@ -252,6 +280,21 @@ export default function Layout() {
           <Outlet />
         </main>
       </div>
+
+      {showIdleWarning && (
+        <div className="fixed inset-0 bg-black/40 z-[3000] flex items-center justify-center">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-[360px] text-center">
+            <div className="text-sm font-semibold text-gray-800 normal-case mb-1">Session inactive</div>
+            <p className="text-xs text-gray-500 normal-case mb-4">
+              Vous êtes inactif depuis un moment. Voulez-vous prolonger votre session ou vous déconnecter ?
+            </p>
+            <div className="flex gap-2 justify-center">
+              <button className="btn btn-outline btn-sm" onClick={handleLogout}>Se déconnecter</button>
+              <button className="btn btn-primary btn-sm" onClick={() => setShowIdleWarning(false)}>Prolonger la session</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

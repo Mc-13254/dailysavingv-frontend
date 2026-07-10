@@ -4,7 +4,7 @@ import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 import StatusBadge from '../components/StatusBadge';
 import ExportDropdown from '../components/ExportDropdown';
-import { TellerAPI } from '../api/endpoints';
+import { TellerAPI, UserAPI, AuthAPI } from '../api/endpoints';
 
 const fmt = (n) => new Intl.NumberFormat('fr-FR').format(n || 0);
 const fmtDate = (d) => d ? new Date(d).toLocaleString('fr-FR') : '—';
@@ -21,6 +21,16 @@ export default function TellerManagement() {
   const [showNew, setShowNew] = useState(false);
   const [form, setForm] = useState({ movementType: 'SUPPLY', fromCodeUser: '', toCodeUser: '', amount: '', reason: '' });
   const [error, setError] = useState('');
+  const [cashiers, setCashiers] = useState([]);
+
+  const [confirming, setConfirming] = useState(null); // row pending password confirmation
+  const [password, setPassword] = useState('');
+  const [confirmError, setConfirmError] = useState('');
+  const [verifying, setVerifying] = useState(false);
+
+  useEffect(() => {
+    UserAPI.list().then(({ data }) => setCashiers(data.filter((u) => (u.roleCode || '').toUpperCase().includes('CASHIER')))).catch(() => {});
+  }, []);
 
   const load = async () => {
     setLoading(true);
@@ -52,7 +62,23 @@ export default function TellerManagement() {
     }
   };
 
-  const approve = async (row) => { await TellerAPI.approveMovement(row.cashMovementID); load(); };
+  const askApprove = (row) => { setConfirming(row); setPassword(''); setConfirmError(''); };
+
+  const confirmApprove = async () => {
+    if (!password) { setConfirmError('Veuillez saisir votre mot de passe.'); return; }
+    setVerifying(true);
+    setConfirmError('');
+    try {
+      await AuthAPI.verifyPassword(password);
+      await TellerAPI.approveMovement(confirming.cashMovementID);
+      setConfirming(null);
+      load();
+    } catch (err) {
+      setConfirmError(err?.response?.data?.message || 'Mot de passe incorrect.');
+    } finally {
+      setVerifying(false);
+    }
+  };
   const reject = async (row) => {
     const reason = window.prompt('Motif du rejet ?');
     if (!reason) return;
@@ -72,7 +98,7 @@ export default function TellerManagement() {
     {
       key: 'actions', label: 'Actions', sortable: false, render: (r) => r.status === 'PENDING' ? (
         <div className="flex items-center gap-1">
-          <button className="btn btn-primary btn-sm" onClick={() => approve(r)}><Check size={13} /></button>
+          <button className="btn btn-primary btn-sm" onClick={() => askApprove(r)}><Check size={13} /></button>
           <button className="btn btn-danger btn-sm" onClick={() => reject(r)}><X size={13} /></button>
         </div>
       ) : null
@@ -129,20 +155,60 @@ export default function TellerManagement() {
           {error && <div className="error-banner mb-2">{error}</div>}
           <div className="form-group">
             <label>Type de mouvement</label>
-            <select value={form.movementType} onChange={(e) => setForm({ ...form, movementType: e.target.value })}>
-              <option value="SUPPLY">Approvisionnement (Coffre → Caissier)</option>
-              <option value="RETURN">Retour (Caissier → Coffre)</option>
-              <option value="TRANSFER">Transfert (Caissier → Caissier)</option>
-            </select>
+            <div className="toggle-group">
+              <button type="button" className={`toggle-btn${form.movementType === 'SUPPLY' ? ' active' : ''}`} onClick={() => setForm({ ...form, movementType: 'SUPPLY' })}>Approvisionnement</button>
+              <button type="button" className={`toggle-btn${form.movementType === 'RETURN' ? ' active' : ''}`} onClick={() => setForm({ ...form, movementType: 'RETURN' })}>Retour</button>
+              <button type="button" className={`toggle-btn${form.movementType === 'TRANSFER' ? ' active' : ''}`} onClick={() => setForm({ ...form, movementType: 'TRANSFER' })}>Transfert</button>
+            </div>
+            <p className="text-[11px] text-gray-400 normal-case mt-1">
+              {form.movementType === 'SUPPLY' && 'Le coffre remet des espèces à un caissier.'}
+              {form.movementType === 'RETURN' && 'Un caissier remet des espèces au coffre.'}
+              {form.movementType === 'TRANSFER' && "Un caissier remet des espèces à un autre caissier."}
+            </p>
           </div>
           {form.movementType !== 'SUPPLY' && (
-            <div className="form-group"><label>Code caissier source</label><input value={form.fromCodeUser} onChange={(e) => setForm({ ...form, fromCodeUser: e.target.value })} placeholder="ex: U-005" /></div>
+            <div className="form-group">
+              <label>Caissier source</label>
+              <select value={form.fromCodeUser} onChange={(e) => setForm({ ...form, fromCodeUser: e.target.value })}>
+                <option value="">— Sélectionner —</option>
+                {cashiers.map((u) => <option key={u.codeUser} value={u.codeUser}>{u.codeUser} — {u.firstName} {u.lastName}</option>)}
+              </select>
+            </div>
           )}
           {form.movementType !== 'RETURN' && (
-            <div className="form-group"><label>Code caissier destination</label><input value={form.toCodeUser} onChange={(e) => setForm({ ...form, toCodeUser: e.target.value })} placeholder="ex: U-007" /></div>
+            <div className="form-group">
+              <label>Caissier destination</label>
+              <select value={form.toCodeUser} onChange={(e) => setForm({ ...form, toCodeUser: e.target.value })}>
+                <option value="">— Sélectionner —</option>
+                {cashiers.map((u) => <option key={u.codeUser} value={u.codeUser}>{u.codeUser} — {u.firstName} {u.lastName}</option>)}
+              </select>
+            </div>
           )}
           <div className="form-group"><label>Montant</label><input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} /></div>
           <div className="form-group"><label>Motif</label><input value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} /></div>
+        </Modal>
+      )}
+
+      {confirming && (
+        <Modal
+          title="Confirmer votre identité"
+          onClose={() => setConfirming(null)}
+          footer={
+            <>
+              <button className="btn btn-outline" onClick={() => setConfirming(null)}>Annuler</button>
+              <button className="btn btn-primary" disabled={verifying} onClick={confirmApprove}>{verifying ? 'Vérification…' : 'Confirmer et approuver'}</button>
+            </>
+          }
+        >
+          <p className="text-xs text-gray-600 normal-case mb-3">
+            Vous êtes sur le point d'approuver le mouvement <strong>{confirming.movementNumber}</strong> ({TYPE_LABELS[confirming.movementType]}, {fmt(confirming.amount)}).
+            Par mesure de sécurité, saisissez votre mot de passe.
+          </p>
+          {confirmError && <div className="error-banner mb-2">{confirmError}</div>}
+          <div className="form-group">
+            <label>Votre mot de passe</label>
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && confirmApprove()} autoFocus />
+          </div>
         </Modal>
       )}
     </div>
