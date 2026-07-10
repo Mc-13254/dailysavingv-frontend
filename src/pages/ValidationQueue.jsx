@@ -35,6 +35,8 @@ function getLabel(module, r) {
       return r.description || (r.inf != null && r.sup != null ? `${r.inf} — ${r.sup}` : '—');
     case 'transactionImports':
       return `${r.transactionType} — ${r.accountID}${r.toAccountID ? ' → ' + r.toAccountID : ''} — ${r.montant?.toLocaleString('fr-FR')}${r.refRowLabel ? ` (${r.refRowLabel})` : ''}`;
+    case 'transactionReversals':
+      return `${r.transactionType} — Reçu ${r.receiptNumber || r.transactionID} — ${r.montant?.toLocaleString('fr-FR')}`;
     default:
       return '—';
   }
@@ -68,6 +70,10 @@ export default function ValidationQueue() {
       // shape the shared table/columns expect.
       return { data: res.data.map((r) => ({ ...r, pendingID: r.rowID, actionType: 'IMPORT', requestUser: '—', requestDate: null })) };
     },
+    transactionReversals: async () => {
+      const res = await TransactionAPI.reversalRequests({ status: 'PENDING' });
+      return { data: res.data.map((r) => ({ ...r, pendingID: r.transactionReversalRequestID, actionType: 'REVERSAL' })) };
+    },
   };
 
   const approvers = {
@@ -83,6 +89,7 @@ export default function ValidationQueue() {
     departments: (id) => DepartmentAPI.approve(id),
     contractTypes: (id) => ContractTypeAPI.approve(id),
     transactionImports: (id) => TransactionAPI.approveImportRow(id),
+    transactionReversals: (id) => TransactionAPI.approveReversal(id),
   };
 
   const rejecters = {
@@ -98,6 +105,7 @@ export default function ValidationQueue() {
     departments: (id, reason) => DepartmentAPI.reject(id, reason),
     contractTypes: (id, reason) => ContractTypeAPI.reject(id, reason),
     transactionImports: (id, reason) => TransactionAPI.rejectImportRow(id, reason),
+    transactionReversals: (id, reason) => TransactionAPI.rejectReversal(id, reason),
   };
 
   const load = async () => {
@@ -166,6 +174,7 @@ export default function ValidationQueue() {
     ['agencies', 'Agences'], ['accounts', 'Comptes'], ['contracts', 'Contrats'],
     ['imf', 'IMF'], ['users', 'Utilisateurs'], ['roles', 'Rôles'], ['departments', 'Départements'], ['contractTypes', 'Types de Contrat'],
     ['transactionImports', 'Imports de transactions'],
+    ['transactionReversals', 'Contre-passations'],
   ];
 
   const confirmingRow = rows.find((r) => r.pendingID === confirming);

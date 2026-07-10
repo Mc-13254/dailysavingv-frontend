@@ -270,7 +270,12 @@ export default function ClientManagement() {
                   <option value="">—</option><option>Célibataire</option><option>Marié(e)</option><option>Divorcé(e)</option><option>Veuf/Veuve</option>
                 </select>
               </Field>
-              <Field label="Profession"><input value={form.profession} onChange={set('profession')} /></Field>
+              <Field label="Profession">
+                <select value={form.profession} onChange={set('profession')}>
+                  <option value="">— Choisir —</option>
+                  {['Agriculteur/Éleveur', 'Commerçant', 'Artisan', 'Enseignant', 'Fonctionnaire', 'Transporteur/Chauffeur', 'Employé du privé', 'Entrepreneur', 'Étudiant', 'Sans emploi', 'Retraité', 'Autre'].map((p) => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </Field>
               <Field label="Occupation"><input value={form.occupation} onChange={set('occupation')} /></Field>
               <Field label="Employeur"><input value={form.employer} onChange={set('employer')} /></Field>
               <Field label="Niveau d'éducation">

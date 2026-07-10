@@ -9,6 +9,7 @@ import {
   ArrowLeftRight, Activity, Sun, Moon,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../api/client';
 import NotificationBell from './NotificationBell';
 
 // Sidebar structure follows the business hierarchy:
@@ -171,8 +172,18 @@ function NavPill({ icon, children }) {
   );
 }
 
-function Avatar({ name }) {
+function Avatar({ name, photoUrl }) {
   const initials = (name || '?').slice(0, 2).toUpperCase();
+  if (photoUrl) {
+    return (
+      <img
+        src={photoUrl.startsWith('http') ? photoUrl : `${API_BASE_URL}${photoUrl}`}
+        alt={name}
+        className="w-8 h-8 rounded-full object-cover border border-white/40"
+        onError={(e) => { e.target.style.display = 'none'; }}
+      />
+    );
+  }
   return (
     <div className="w-8 h-8 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-white text-[11px] font-bold">
       {initials}
@@ -272,7 +283,7 @@ export default function Layout() {
             <button className="bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded border border-white/30" onClick={handleLogout}>
               Déconnexion
             </button>
-            <Avatar name={user?.username} />
+            <Avatar name={user?.username} photoUrl={user?.photoUrl} />
           </div>
         </header>
 

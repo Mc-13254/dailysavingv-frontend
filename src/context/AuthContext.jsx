@@ -21,6 +21,7 @@ export function AuthProvider({ children }) {
       agenceNom: data.agenceNom,
       agenceCode: data.agenceCode,
       mustChangePassword: data.mustChangePassword,
+      photoUrl: data.photoUrl,
     };
     localStorage.setItem('dsv_user', JSON.stringify(userInfo));
     setUser(userInfo);

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Eye } from 'lucide-react';
+import { Eye, Undo2 } from 'lucide-react';
 import DataTable from '../components/DataTable';
 import WideModal from '../components/WideModal';
 import StatusBadge from '../components/StatusBadge';
 import ExportDropdown from '../components/ExportDropdown';
-import { ReportsAPI } from '../api/endpoints';
+import { ReportsAPI, TransactionAPI } from '../api/endpoints';
 
 const fmt = (n) => new Intl.NumberFormat('fr-FR').format(n || 0);
 
@@ -19,6 +19,19 @@ export default function TransactionHistory() {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ search: '', transactionType: '', status: '', from: '', to: '' });
   const [detail, setDetail] = useState(null);
+  const [reversalNotice, setReversalNotice] = useState('');
+
+  const requestReversal = async (row) => {
+    const reason = window.prompt(`Motif de la demande de contre-passation pour ${row.receiptNumber || '#' + row.transactionID} ?`);
+    if (!reason) return;
+    try {
+      await TransactionAPI.requestReversal(row.transactionID, reason);
+      setReversalNotice('Demande de contre-passation soumise pour approbation.');
+      load();
+    } catch (err) {
+      setReversalNotice(err?.response?.data?.message || 'Échec de la demande.');
+    }
+  };
 
   const load = async () => {
     setLoading(true);
@@ -62,7 +75,12 @@ export default function TransactionHistory() {
     },
     {
       key: 'actions', label: 'Actions', sortable: false, render: (r) => (
-        <button className="btn-icon" title="Voir" onClick={() => openDetail(r)}><Eye size={15} /></button>
+        <div className="flex items-center gap-1">
+          <button className="btn-icon" title="Voir" onClick={() => openDetail(r)}><Eye size={15} /></button>
+          {r.statut === 'VALIDATED' && ['DEPOSIT', 'WITHDRAWAL', 'TRANSFER'].includes(r.transactionType) && (
+            <button className="btn-icon text-amber-600" title="Demander une contre-passation" onClick={() => requestReversal(r)}><Undo2 size={15} /></button>
+          )}
+        </div>
       )
     },
   ];
@@ -72,9 +90,11 @@ export default function TransactionHistory() {
       <div className="panel-header">
         <div>
           <div className="panel-title">Transaction History</div>
-          <div className="panel-subtitle">Grand livre officiel — lecture seule, aucune transaction ne peut être modifiée ou supprimée ici.</div>
+          <div className="panel-subtitle">Grand livre officiel — lecture seule, aucune transaction ne peut être modifiée ou supprimée ici. Une contre-passation nécessite une approbation.</div>
         </div>
       </div>
+
+      {reversalNotice && <div className="mb-3 text-xs text-green-700 bg-green-50 px-3 py-2 rounded normal-case">{reversalNotice}</div>}
 
       {stats && (
         <div className="kpi-grid mb-4">

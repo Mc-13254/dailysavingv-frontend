@@ -11,6 +11,7 @@ const GENDER_OPTIONS = ['Male', 'Female'];
 const MARITAL_OPTIONS = ['Single', 'Married', 'Divorced', 'Widowed'];
 
 const TYPE_USER_OPTIONS = ['Administrator', 'Manager', 'Cashier', 'Collector', 'Supervisor', 'Auditor'];
+const DEFAULT_PASSWORD = 'AnyCollect@2026';
 
 const emptyForm = {
   username: '', password: '', confirmPassword: '', roleID: '', typeUser: '',
@@ -110,14 +111,10 @@ export default function UserManagement() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (mode === 'create' && form.password !== form.confirmPassword) {
-      setError('Le mot de passe et sa confirmation ne correspondent pas.');
-      return;
-    }
     try {
       if (mode === 'create') {
         await UserAPI.create({
-          username: form.username, password: form.password, confirmPassword: form.confirmPassword,
+          username: form.username, password: DEFAULT_PASSWORD, confirmPassword: DEFAULT_PASSWORD,
           email: form.email, phone: form.phone, secondaryPhone: form.secondaryPhone,
           adresse: form.adresse, cni: form.cni, roleID: form.roleID, typeUser: form.typeUser,
           firstName: form.firstName, lastName: form.lastName,
@@ -237,9 +234,19 @@ export default function UserManagement() {
                   </div>
                   {mode === 'create' && (
                     <>
-                      <div className="form-group"><label>Password *</label><input type="password" required value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></div>
-                      <div className="form-group"><label>Confirm Password *</label><input type="password" required value={form.confirmPassword} onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })} /></div>
+                      <div className="form-group">
+                        <label>Mot de passe par défaut</label>
+                        <input type="text" value="AnyCollect@2026" disabled className="bg-gray-100 text-gray-500" />
+                        <p className="text-[11px] text-gray-400 normal-case mt-0.5">L'utilisateur devra le changer obligatoirement à sa première connexion.</p>
+                      </div>
                     </>
+                  )}
+                  {mode === 'create' && (
+                    <div className="form-group">
+                      <label>Mot de passe par défaut</label>
+                      <input type="text" value={DEFAULT_PASSWORD} disabled className="bg-gray-100 text-gray-500" />
+                      <p className="text-[11px] text-gray-400 normal-case mt-0.5">L'utilisateur devra le changer obligatoirement à sa première connexion.</p>
+                    </div>
                   )}
                   {mode === 'edit' && <div className="form-group"><label>New Password</label><input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Laisser vide pour ne pas changer" /></div>}
                   <div className="form-group">
