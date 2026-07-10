@@ -104,7 +104,6 @@ export const ReportsAPI = {
   dailyCollections: (params) => client.get('/api/reports/daily-collections', { params }),
   dailyCollectionsByZone: () => client.get('/api/reports/daily-collections/by-zone'),
   dailyCollectionStats: () => client.get('/api/reports/daily-collections/stats'),
-  executive: () => client.get('/api/reports/executive'),
 };
 
 export const SecurityAPI = {
@@ -125,65 +124,6 @@ export const SecurityAPI = {
   revokeApiKey: (id) => client.post(`/api/security/api-keys/${id}/revoke`),
   errorLogs: (params) => client.get('/api/security/error-logs', { params }),
   systemHealth: () => client.get('/api/security/system-health'),
-};
-
-export const LoanAPI = {
-  products: () => client.get('/api/loans/products'),
-  createProduct: (payload) => client.post('/api/loans/products', payload),
-  applications: (params) => client.get('/api/loans/applications', { params }),
-  createApplication: (payload) => client.post('/api/loans/applications', payload),
-  approveApplication: (id, payload) => client.post(`/api/loans/applications/${id}/approve`, payload),
-  rejectApplication: (id, reason) => client.post(`/api/loans/applications/${id}/reject`, { reason }),
-  disburse: (id, payload) => client.post(`/api/loans/applications/${id}/disburse`, payload),
-  list: (params) => client.get('/api/loans', { params }),
-  detail: (id) => client.get(`/api/loans/${id}`),
-  schedule: (id) => client.get(`/api/loans/${id}/schedule`),
-  repay: (id, amount) => client.post(`/api/loans/${id}/repay`, { amount }),
-  writeOff: (id, reason) => client.post(`/api/loans/${id}/write-off`, { reason }),
-  dashboard: () => client.get('/api/loans/dashboard'),
-};
-
-export const TellerAPI = {
-  vault: () => client.get('/api/teller/vault'),
-  setVaultLimits: (minimumBalance, maximumBalance) => client.put('/api/teller/vault/limits', null, { params: { minimumBalance, maximumBalance } }),
-  movements: (params) => client.get('/api/teller/movements', { params }),
-  requestMovement: (payload) => client.post('/api/teller/movements', payload),
-  approveMovement: (id) => client.post(`/api/teller/movements/${id}/approve`),
-  rejectMovement: (id, reason) => client.post(`/api/teller/movements/${id}/reject`, { reason }),
-  dashboard: () => client.get('/api/teller/dashboard'),
-};
-
-export const DocumentAPI = {
-  list: (params) => client.get('/api/documents', { params }),
-  upload: (formData) => client.post('/api/documents/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
-  remove: (id) => client.delete(`/api/documents/${id}`),
-};
-
-export const AccountingAPI = {
-  chartOfAccounts: () => client.get('/api/accounting/chart-of-accounts'),
-  trialBalance: (params) => client.get('/api/accounting/trial-balance', { params }),
-  generalLedger: (glAccountId, params) => client.get(`/api/accounting/general-ledger/${glAccountId}`, { params }),
-  balanceSheet: (params) => client.get('/api/accounting/balance-sheet', { params }),
-  profitAndLoss: (params) => client.get('/api/accounting/profit-loss', { params }),
-  cashBook: (params) => client.get('/api/accounting/cash-book', { params }),
-  cashFlow: (params) => client.get('/api/accounting/cash-flow', { params }),
-  periods: () => client.get('/api/accounting/periods'),
-  closePeriod: (year, month) => client.post(`/api/accounting/periods/${year}/${month}/close`),
-  reopenPeriod: (year, month) => client.post(`/api/accounting/periods/${year}/${month}/reopen`),
-  manualEntries: (params) => client.get('/api/accounting/manual-entries', { params }),
-  createManualEntry: (payload) => client.post('/api/accounting/manual-entries', payload),
-  approveManualEntry: (id) => client.post(`/api/accounting/manual-entries/${id}/approve`),
-  rejectManualEntry: (id, reason) => client.post(`/api/accounting/manual-entries/${id}/reject`, { reason }),
-  reverseEntry: (journalEntryId) => client.post(`/api/accounting/entries/${journalEntryId}/reverse`),
-  activityLog: (params) => client.get('/api/accounting/activity-log', { params }),
-  logAction: (action, reportType) => client.post('/api/accounting/log-action', null, { params: { action, reportType } }),
-};
-
-export const NotificationAPI = {
-  list: (unreadOnly) => client.get('/api/notifications', { params: { unreadOnly } }),
-  unreadCount: () => client.get('/api/notifications/unread-count'),
-  markRead: (id) => client.post(`/api/notifications/${id}/read`),
-  markAllRead: () => client.post('/api/notifications/read-all'),
 };
 
 // Agency / Account / Contract / IMF / Users: same REST shape as Collector/Client
