@@ -167,6 +167,16 @@ export const AccountingAPI = {
   profitAndLoss: (params) => client.get('/api/accounting/profit-loss', { params }),
   cashBook: (params) => client.get('/api/accounting/cash-book', { params }),
   cashFlow: (params) => client.get('/api/accounting/cash-flow', { params }),
+  periods: () => client.get('/api/accounting/periods'),
+  closePeriod: (year, month) => client.post(`/api/accounting/periods/${year}/${month}/close`),
+  reopenPeriod: (year, month) => client.post(`/api/accounting/periods/${year}/${month}/reopen`),
+  manualEntries: (params) => client.get('/api/accounting/manual-entries', { params }),
+  createManualEntry: (payload) => client.post('/api/accounting/manual-entries', payload),
+  approveManualEntry: (id) => client.post(`/api/accounting/manual-entries/${id}/approve`),
+  rejectManualEntry: (id, reason) => client.post(`/api/accounting/manual-entries/${id}/reject`, { reason }),
+  reverseEntry: (journalEntryId) => client.post(`/api/accounting/entries/${journalEntryId}/reverse`),
+  activityLog: (params) => client.get('/api/accounting/activity-log', { params }),
+  logAction: (action, reportType) => client.post('/api/accounting/log-action', null, { params: { action, reportType } }),
 };
 
 export const NotificationAPI = {
