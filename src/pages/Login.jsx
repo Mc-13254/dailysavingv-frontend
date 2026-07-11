@@ -49,7 +49,7 @@ export default function Login() {
   };
 
   return (
-    <div className={`relative min-h-screen w-full flex normal-case overflow-hidden ${dark ? 'bg-[#060b18]' : 'bg-[#eef3fb]'}`}>
+    <div className={`relative h-screen w-full flex normal-case overflow-hidden ${dark ? 'bg-[#060b18]' : 'bg-[#eef3fb]'}`}>
       {/* Animated blurred gradient orbs — the "unique" background */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
@@ -80,11 +80,11 @@ export default function Login() {
       `}</style>
 
       {/* Left hero panel — hidden on small screens */}
-      <div className="hidden lg:flex lg:w-1/2 relative z-10 flex-col justify-between p-12">
-          <div className="flex items-center gap-3 mb-10">
-            <img src="/logo.png" alt="AnyCollect" className="w-14 h-14 object-contain rounded-xl bg-white p-1 shadow" />
+      <div className="hidden lg:flex lg:w-1/2 relative z-10 flex-col justify-between p-8 xl:p-12 overflow-y-auto">
+          <div className="flex items-center gap-3 mb-6 xl:mb-8">
+            <img src="/logo.png" alt="AnyCollect" className="w-12 h-12 xl:w-14 xl:h-14 object-contain rounded-xl bg-white p-1 shadow" />
             <div>
-              <div className={`text-2xl font-extrabold leading-tight ${dark ? 'text-white' : 'text-brand-navy'}`}>
+              <div className={`text-xl xl:text-2xl font-extrabold leading-tight ${dark ? 'text-white' : 'text-brand-navy'}`}>
                 Any<span className="text-brand-green">collect</span>
               </div>
               <div className={`text-[10px] tracking-widest font-semibold ${dark ? 'text-white/50' : 'text-gray-400'}`}>
@@ -93,26 +93,26 @@ export default function Login() {
             </div>
           </div>
 
-          <h1 className={`text-3xl font-extrabold leading-snug mb-1 ${dark ? 'text-white' : 'text-brand-navy'}`}>
+          <h1 className={`text-2xl xl:text-3xl font-extrabold leading-snug mb-1 ${dark ? 'text-white' : 'text-brand-navy'}`}>
             Enterprise Intelligent<br />Core Banking System
           </h1>
-          <div className="w-14 h-1 bg-gradient-to-r from-brand-blue to-brand-green rounded-full mt-3 mb-10" />
+          <div className="w-14 h-1 bg-gradient-to-r from-brand-blue to-brand-green rounded-full mt-3 mb-6 xl:mb-8" />
 
-          <div className="grid grid-cols-1 gap-5">
+          <div className="grid grid-cols-1 gap-3 xl:gap-4">
             {FEATURES.map((f) => (
               <div key={f.title} className="flex items-start gap-3">
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${dark ? 'bg-white/10' : 'bg-white shadow-sm'}`}>
-                  <f.icon size={18} className={dark ? 'text-brand-green' : 'text-brand-blue'} />
+                <div className={`w-9 h-9 xl:w-10 xl:h-10 rounded-lg flex items-center justify-center shrink-0 ${dark ? 'bg-white/10' : 'bg-white shadow-sm'}`}>
+                  <f.icon size={16} className={dark ? 'text-brand-green' : 'text-brand-blue'} />
                 </div>
                 <div>
-                  <div className={`text-sm font-semibold ${dark ? 'text-white' : 'text-gray-800'}`}>{f.title}</div>
-                  <div className={`text-xs normal-case ${dark ? 'text-white/50' : 'text-gray-500'}`}>{f.desc}</div>
+                  <div className={`text-xs xl:text-sm font-semibold ${dark ? 'text-white' : 'text-gray-800'}`}>{f.title}</div>
+                  <div className={`text-[11px] xl:text-xs normal-case ${dark ? 'text-white/50' : 'text-gray-500'}`}>{f.desc}</div>
                 </div>
               </div>
             ))}
           </div>
 
-        <div className={`relative z-10 flex flex-wrap gap-6 pt-8 border-t ${dark ? 'border-white/10' : 'border-black/5'}`}>
+        <div className={`relative z-10 flex flex-wrap gap-4 xl:gap-6 pt-5 xl:pt-8 mt-6 xl:mt-8 border-t ${dark ? 'border-white/10' : 'border-black/5'}`}>
           {TRUST_BADGES.map((b) => (
             <div key={b.label} className="flex items-center gap-2">
               <b.icon size={16} className={dark ? 'text-brand-green' : 'text-brand-blue'} />
@@ -126,18 +126,18 @@ export default function Login() {
       </div>
 
       {/* Right panel — the actual login form */}
-      <div className="flex-1 relative z-10 flex items-center justify-center p-6">
+      <div className="flex-1 relative z-10 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
         <div
-          className={`w-full max-w-sm rounded-2xl shadow-2xl p-8 backdrop-blur-xl ${
+          className={`w-full max-w-sm rounded-2xl shadow-2xl p-6 sm:p-8 backdrop-blur-xl my-auto ${
             dark ? 'bg-white/[0.06] border border-white/15' : 'bg-white/60 border border-white/80'
           }`}
         >
-          <div className="flex justify-center mb-5 lg:hidden">
-            <img src="/logo.png" alt="AnyCollect" className="w-16 h-16 object-contain" />
+          <div className="flex justify-center mb-4 sm:mb-5 lg:hidden">
+            <img src="/logo.png" alt="AnyCollect" className="w-12 h-12 sm:w-16 sm:h-16 object-contain" />
           </div>
 
-          <h2 className={`text-xl font-bold text-center ${dark ? 'text-white' : 'text-gray-800'}`}>Welcome Back</h2>
-          <p className={`text-xs text-center normal-case mt-1 mb-6 ${dark ? 'text-white/50' : 'text-gray-500'}`}>
+          <h2 className={`text-lg sm:text-xl font-bold text-center ${dark ? 'text-white' : 'text-gray-800'}`}>Welcome Back</h2>
+          <p className={`text-xs text-center normal-case mt-1 mb-5 sm:mb-6 ${dark ? 'text-white/50' : 'text-gray-500'}`}>
             Sign in to continue managing your institution securely.
           </p>
 
