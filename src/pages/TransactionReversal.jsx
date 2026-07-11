@@ -25,7 +25,7 @@ export default function TransactionReversal() {
   const [rejectReason, setRejectReason] = useState('');
 
   const [executing, setExecuting] = useState(null);
-  const [executeTxId, setExecuteTxId] = useState('');
+  const [executeReceiptNumber, setExecuteReceiptNumber] = useState('');
   const [executeError, setExecuteError] = useState('');
 
   const load = async () => {
@@ -80,7 +80,7 @@ export default function TransactionReversal() {
   const execute = async () => {
     setExecuteError('');
     try {
-      await TransactionAPI.executeReversal(executing.transactionReversalRequestID, Number(executeTxId));
+      await TransactionAPI.executeReversal(executing.transactionReversalRequestID, executeReceiptNumber.trim());
       setExecuting(null);
       load();
     } catch (err) {
@@ -96,7 +96,7 @@ export default function TransactionReversal() {
     { key: 'status', label: 'Statut', render: (r) => <StatusBadge status={r.status} /> },
     { key: 'requestedBy', label: 'Demandé par' },
     { key: 'requestDate', label: 'Le', render: (r) => fmtDate(r.requestDate) },
-    { key: 'transactionID', label: 'N° Transaction', render: (r) => r.transactionID || '—' },
+    { key: 'transactionID', label: 'N° Reçu contre-passé', render: (r) => r.receiptNumber || '—' },
     {
       key: 'actions', label: 'Actions', sortable: false, render: (r) => (
         <div className="flex items-center gap-1">
@@ -107,7 +107,7 @@ export default function TransactionReversal() {
             </>
           )}
           {r.status === 'APPROVED' && (
-            <button className="btn btn-primary btn-sm" onClick={() => { setExecuting(r); setExecuteTxId(''); setExecuteError(''); }}>
+            <button className="btn btn-primary btn-sm" onClick={() => { setExecuting(r); setExecuteReceiptNumber(''); setExecuteError(''); }}>
               <Undo2 size={13} /> Exécuter
             </button>
           )}
@@ -185,14 +185,14 @@ export default function TransactionReversal() {
         <Modal title="Exécuter la contre-passation" onClose={() => setExecuting(null)} footer={
           <>
             <button className="btn btn-outline" onClick={() => setExecuting(null)}>Annuler</button>
-            <button className="btn btn-primary" disabled={!executeTxId} onClick={execute}>Exécuter immédiatement</button>
+            <button className="btn btn-primary" disabled={!executeReceiptNumber} onClick={execute}>Exécuter immédiatement</button>
           </>
         }>
           {executeError && <div className="error-banner mb-2">{executeError}</div>}
           <p className="text-xs text-gray-600 normal-case mb-2">
-            Demande approuvée pour <strong>{executing.clientName}</strong> — {fmt(executing.montant)}. Entrez le numéro exact de la transaction à contre-passer.
+            Demande approuvée pour <strong>{executing.clientName}</strong> — {fmt(executing.montant)}. Entrez le numéro de reçu exact de la transaction à contre-passer.
           </p>
-          <div className="form-group"><label>N° Transaction (ID) *</label><input type="number" value={executeTxId} onChange={(e) => setExecuteTxId(e.target.value)} /></div>
+          <div className="form-group"><label>N° Reçu (Receipt Number) *</label><input value={executeReceiptNumber} onChange={(e) => setExecuteReceiptNumber(e.target.value)} placeholder="ex: RCT-20260710214435-6072" /></div>
         </Modal>
       )}
     </div>
