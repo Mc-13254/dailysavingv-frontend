@@ -49,18 +49,38 @@ export default function Login() {
   };
 
   return (
-    <div className={`min-h-screen w-full flex normal-case ${dark ? 'bg-[#0a1428]' : 'bg-[#f4f7fb]'}`}>
-      {/* Left hero panel — hidden on small screens */}
-      <div className={`hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col justify-between p-12 ${dark ? 'bg-[#0a1428]' : 'bg-gradient-to-br from-[#eef4fb] to-[#e3f7ec]'}`}>
+    <div className={`relative min-h-screen w-full flex normal-case overflow-hidden ${dark ? 'bg-[#060b18]' : 'bg-[#eef3fb]'}`}>
+      {/* Animated blurred gradient orbs — the "unique" background */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
-          className="absolute inset-0 opacity-40"
+          className="absolute rounded-full blur-[110px] opacity-50 animate-[float1_18s_ease-in-out_infinite]"
+          style={{ width: 520, height: 520, top: '-8%', left: '-6%', background: dark ? '#1E90FF' : '#8fc6ff' }}
+        />
+        <div
+          className="absolute rounded-full blur-[130px] opacity-40 animate-[float2_22s_ease-in-out_infinite]"
+          style={{ width: 600, height: 600, bottom: '-12%', right: '-8%', background: dark ? '#11fc82' : '#9df3c4' }}
+        />
+        <div
+          className="absolute rounded-full blur-[100px] opacity-30 animate-[float1_26s_ease-in-out_infinite_reverse]"
+          style={{ width: 380, height: 380, top: '35%', left: '38%', background: dark ? '#7c3aed' : '#c9b8fb' }}
+        />
+        {/* Dot-grid mesh overlay for texture */}
+        <div
+          className="absolute inset-0"
           style={{
-            backgroundImage: dark
-              ? 'radial-gradient(circle at 20% 20%, rgba(30,144,255,0.25), transparent 45%), radial-gradient(circle at 80% 70%, rgba(17,252,130,0.15), transparent 45%)'
-              : 'radial-gradient(circle at 20% 20%, rgba(30,144,255,0.15), transparent 45%), radial-gradient(circle at 80% 70%, rgba(17,252,130,0.15), transparent 45%)',
+            backgroundImage: `radial-gradient(${dark ? 'rgba(255,255,255,0.08)' : 'rgba(11,28,61,0.06)'} 1px, transparent 1px)`,
+            backgroundSize: '26px 26px',
           }}
         />
-        <div className="relative z-10">
+      </div>
+
+      <style>{`
+        @keyframes float1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(40px,60px) scale(1.1); } }
+        @keyframes float2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-50px,-40px) scale(1.08); } }
+      `}</style>
+
+      {/* Left hero panel — hidden on small screens */}
+      <div className="hidden lg:flex lg:w-1/2 relative z-10 flex-col justify-between p-12">
           <div className="flex items-center gap-3 mb-10">
             <img src="/logo.png" alt="AnyCollect" className="w-14 h-14 object-contain rounded-xl bg-white p-1 shadow" />
             <div>
@@ -91,7 +111,6 @@ export default function Login() {
               </div>
             ))}
           </div>
-        </div>
 
         <div className={`relative z-10 flex flex-wrap gap-6 pt-8 border-t ${dark ? 'border-white/10' : 'border-black/5'}`}>
           {TRUST_BADGES.map((b) => (
@@ -107,8 +126,12 @@ export default function Login() {
       </div>
 
       {/* Right panel — the actual login form */}
-      <div className="flex-1 flex items-center justify-center p-6">
-        <div className={`w-full max-w-sm rounded-2xl shadow-2xl p-8 ${dark ? 'bg-[#0f1d38] border border-white/10' : 'bg-white'}`}>
+      <div className="flex-1 relative z-10 flex items-center justify-center p-6">
+        <div
+          className={`w-full max-w-sm rounded-2xl shadow-2xl p-8 backdrop-blur-xl ${
+            dark ? 'bg-white/[0.06] border border-white/15' : 'bg-white/60 border border-white/80'
+          }`}
+        >
           <div className="flex justify-center mb-5 lg:hidden">
             <img src="/logo.png" alt="AnyCollect" className="w-16 h-16 object-contain" />
           </div>
@@ -129,7 +152,7 @@ export default function Login() {
                 required
                 autoFocus
                 placeholder="Enter your username"
-                className={dark ? 'bg-white/5 border-white/15 text-white placeholder:text-white/30' : ''}
+                className={dark ? 'bg-white/[0.07] border-white/20 text-white placeholder:text-white/30' : 'bg-white/70 border-white/90'}
               />
             </div>
             <div className="form-group">
@@ -141,7 +164,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="Enter your password"
-                  className={dark ? 'bg-white/5 border-white/15 text-white placeholder:text-white/30 pr-10' : 'pr-10'}
+                  className={dark ? 'bg-white/[0.07] border-white/20 text-white placeholder:text-white/30 pr-10' : 'bg-white/70 border-white/90 pr-10'}
                 />
                 <button
                   type="button"
