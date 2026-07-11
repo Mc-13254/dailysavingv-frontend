@@ -6,7 +6,7 @@ import StatusBadge from '../components/StatusBadge';
 import ExportDropdown from '../components/ExportDropdown';
 import { RoleAPI } from '../api/endpoints';
 
-const emptyForm = { libelle: '', description: '', statut: true };
+const emptyForm = { libelle: '', description: '', roleType: 'CUSTOM', statut: true };
 
 // mode: 'create' | 'edit' | 'view' | null
 export default function RoleManagement() {
@@ -41,7 +41,7 @@ export default function RoleManagement() {
 
   function mapRowToForm(row) {
     return {
-      __id: row.roleID, code: row.code, libelle: row.libelle, description: row.description || '',
+      __id: row.roleID, code: row.code, libelle: row.libelle, description: row.description || '', roleType: row.roleType || 'CUSTOM',
       statut: row.statut, usersCount: row.usersCount, createdBy: row.createdBy, createdDate: row.createdDate,
     };
   }
@@ -51,10 +51,10 @@ export default function RoleManagement() {
     setError('');
     try {
       if (mode === 'create') {
-        await RoleAPI.create({ libelle: form.libelle, description: form.description });
+        await RoleAPI.create({ libelle: form.libelle, description: form.description, roleType: form.roleType });
         setNotice('Rôle soumis pour validation.');
       } else if (mode === 'edit') {
-        await RoleAPI.update(form.__id, { libelle: form.libelle, description: form.description, statut: form.statut });
+        await RoleAPI.update(form.__id, { libelle: form.libelle, description: form.description, roleType: form.roleType, statut: form.statut });
         setNotice('Modification soumise pour validation.');
       }
       close();
@@ -78,6 +78,7 @@ export default function RoleManagement() {
   const columns = [
     { key: 'code', label: 'Code' },
     { key: 'libelle', label: 'Role Name' },
+    { key: 'roleType', label: 'Type', render: (r) => r.roleType || 'CUSTOM' },
     { key: 'description', label: 'Description', render: (r) => r.description || '—' },
     { key: 'usersCount', label: 'Users' },
     { key: 'statut', label: 'Status', render: (r) => <StatusBadge status={r.statut ? 'ACTIVE' : 'INACTIVE'} /> },
@@ -133,6 +134,17 @@ export default function RoleManagement() {
               <div className="form-group"><label>Role Code</label><input disabled value={form.code || ''} /></div>
             )}
             <div className="form-group"><label>Role Name *</label><input required disabled={readOnly} value={form.libelle} onChange={(e) => setForm({ ...form, libelle: e.target.value })} placeholder="Manager" /></div>
+            <div className="form-group">
+              <label>Type de rôle * (détermine les droits d'accès réels)</label>
+              <select disabled={readOnly} value={form.roleType} onChange={(e) => setForm({ ...form, roleType: e.target.value })}>
+                <option value="ADMIN">Administrateur (accès total)</option>
+                <option value="SUPERVISOR">Superviseur</option>
+                <option value="MANAGER">Manager</option>
+                <option value="CASHIER">Caissier</option>
+                <option value="COLLECTOR">Collecteur</option>
+                <option value="CUSTOM">Personnalisé (aucun droit par défaut)</option>
+              </select>
+            </div>
             <div className="form-group"><label>Description</label><textarea rows={2} disabled={readOnly} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Responsible for managing one or more agencies." /></div>
 
             <div className="text-xs font-bold text-brand-blue uppercase mt-2">Status</div>

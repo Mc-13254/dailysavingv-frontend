@@ -17,6 +17,7 @@ export function AuthProvider({ children }) {
       codeUser: data.codeUser,
       username: data.username,
       roleCode: data.roleCode,
+      roleType: data.roleType,
       agenceID: data.agenceID,
       agenceNom: data.agenceNom,
       agenceCode: data.agenceCode,

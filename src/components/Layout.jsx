@@ -272,7 +272,7 @@ export default function Layout() {
         <div className="px-4 py-4 border-t border-gray-100">
           <div className="text-[10px] text-gray-400 font-semibold mb-1">{t('RÔLE')}:</div>
           <span className="inline-block border border-brand-blue text-brand-blue text-[11px] font-bold px-2.5 py-1 rounded">
-            {user?.roleCode || '—'}
+            {user?.roleType || user?.roleCode || "—"}
           </span>
         </div>
       </aside>
@@ -283,7 +283,7 @@ export default function Layout() {
           <NavPill icon={<User size={13} />}>{user?.codeUser}</NavPill>
           <NavPill icon={<Building2 size={13} />}>{user?.agenceNom || 'SIÈGE'}</NavPill>
           <NavPill icon={<Home size={13} />}>{user?.agenceCode || '—'}</NavPill>
-          <NavPill icon={<BadgeCheck size={13} />}>RÔLE: {user?.roleCode}</NavPill>
+          <NavPill icon={<BadgeCheck size={13} />}>RÔLE: {user?.roleType || user?.roleCode}</NavPill>
 
           <span className="flex items-center gap-1.5 text-white/80 text-[11px] italic">
             <Clock size={13} />
