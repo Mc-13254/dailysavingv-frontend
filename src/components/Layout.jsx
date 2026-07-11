@@ -6,7 +6,7 @@ import {
   Percent, Layers, Hash, UserCog, UserPlus, TrendingUp, Wallet,
   FileText, CalendarCheck, ArrowDownCircle, ArrowUpCircle, CheckCircle2,
   BarChart3, LogIn, History, ScrollText, ShieldAlert, SlidersHorizontal,
-  ArrowLeftRight, Activity, Sun, Moon, Undo2,
+  ArrowLeftRight, Activity, Sun, Moon, Undo2, Menu, LogOut,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../api/client';
@@ -169,9 +169,9 @@ function SidebarItem({ group }) {
   );
 }
 
-function NavPill({ icon, children }) {
+function NavPill({ icon, children, className }) {
   return (
-    <span className="flex items-center gap-1.5 text-white text-[11px] font-semibold whitespace-nowrap">
+    <span className={`items-center gap-1.5 text-white text-[11px] font-semibold whitespace-nowrap ${className || 'flex'}`}>
       {icon}
       {children}
     </span>
@@ -208,6 +208,7 @@ export default function Layout() {
 
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('dsv_theme') === 'dark');
   const [showIdleWarning, setShowIdleWarning] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [myModules, setMyModules] = useState(null); // null = still loading -> show nothing yet to avoid a flash of unauthorized items
 
   useEffect(() => {
@@ -246,14 +247,25 @@ export default function Layout() {
     navigate('/login');
   };
 
+  const location = useLocation();
+  useEffect(() => { setMobileNavOpen(false); }, [location.pathname]);
+
   const now = new Date();
   const dateStr = now.toLocaleDateString('fr-FR');
   const timeStr = now.toLocaleTimeString('fr-FR');
 
   return (
     <div className="flex min-h-screen bg-gray-50 normal-case">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
+      {/* Mobile overlay */}
+      {mobileNavOpen && (
+        <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={() => setMobileNavOpen(false)} />
+      )}
+
+      {/* Sidebar — static on desktop, off-canvas drawer on mobile/tablet */}
+      <aside
+        className={`w-64 bg-white border-r border-gray-200 flex flex-col flex-shrink-0 fixed inset-y-0 left-0 z-50 transition-transform duration-200 lg:static lg:translate-x-0
+          ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'}`}
+      >
         <div className="px-5 py-5 bg-brand-blue flex items-center gap-2">
           <div className="w-9 h-9 rounded-md bg-white flex items-center justify-center overflow-hidden">
             <img src="/logo.png" alt="AnyCollect" className="w-full h-full object-contain" />
@@ -279,37 +291,41 @@ export default function Layout() {
 
       {/* Main area */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-14 bg-brand-blue flex items-center gap-5 px-5 flex-wrap shadow-sm">
+        <header className="h-14 bg-brand-blue flex items-center gap-3 sm:gap-5 px-3 sm:px-5 flex-wrap shadow-sm">
+          <button className="text-white lg:hidden" onClick={() => setMobileNavOpen(true)}>
+            <Menu size={22} />
+          </button>
           <NavPill icon={<User size={13} />}>{user?.codeUser}</NavPill>
-          <NavPill icon={<Building2 size={13} />}>{user?.agenceNom || 'SIÈGE'}</NavPill>
-          <NavPill icon={<Home size={13} />}>{user?.agenceCode || '—'}</NavPill>
-          <NavPill icon={<BadgeCheck size={13} />}>RÔLE: {user?.roleType || user?.roleCode}</NavPill>
+          <NavPill icon={<Building2 size={13} />} className="hidden sm:flex">{user?.agenceNom || 'SIÈGE'}</NavPill>
+          <NavPill icon={<Home size={13} />} className="hidden md:flex">{user?.agenceCode || '—'}</NavPill>
+          <NavPill icon={<BadgeCheck size={13} />} className="hidden sm:flex">RÔLE: {user?.roleType || user?.roleCode}</NavPill>
 
-          <span className="flex items-center gap-1.5 text-white/80 text-[11px] italic">
+          <span className="hidden lg:flex items-center gap-1.5 text-white/80 text-[11px] italic">
             <Clock size={13} />
             {dateStr} {timeStr}
           </span>
 
-          <div className="ml-auto flex items-center gap-4">
+          <div className="ml-auto flex items-center gap-2 sm:gap-4">
             <NotificationBell />
             <button className="text-white/80 hover:text-white" title={darkMode ? t('Mode clair') : t('Mode sombre')} onClick={() => setDarkMode(!darkMode)}>
               {darkMode ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <button className="text-white/80 hover:text-white" title={t('Paramètres')}>
+            <button className="hidden sm:inline-flex text-white/80 hover:text-white" title={t('Paramètres')}>
               <Settings size={18} />
             </button>
-            <button className="text-white/80 hover:text-white flex items-center gap-1" title={t('Langue')} onClick={toggleLanguage}>
+            <button className="hidden sm:inline-flex text-white/80 hover:text-white items-center gap-1" title={t('Langue')} onClick={toggleLanguage}>
               <Flag size={18} />
               <span className="text-[10px] font-bold">{language.toUpperCase()}</span>
             </button>
-            <button className="bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded border border-white/30" onClick={handleLogout}>
-              {t('Déconnexion')}
+            <button className="bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-2 sm:px-3 py-1.5 rounded border border-white/30" onClick={handleLogout}>
+              <span className="hidden sm:inline">{t('Déconnexion')}</span>
+              <LogOut size={15} className="sm:hidden" />
             </button>
             <Avatar name={user?.username} photoUrl={user?.photoUrl} />
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-5 normal-case">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-5 normal-case min-w-0">
           <Outlet />
         </main>
       </div>
