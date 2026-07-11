@@ -80,8 +80,8 @@ export default function Login() {
       `}</style>
 
       {/* Left hero panel — hidden on small screens */}
-      <div className="hidden lg:flex lg:w-1/2 relative z-10 flex-col justify-between p-8 xl:p-12 overflow-y-auto">
-          <div className="flex items-center gap-3 mb-6 xl:mb-8">
+      <div className="hidden lg:flex lg:w-1/2 relative z-10 flex-col justify-between p-5 xl:p-9 ">
+          <div className="flex items-center gap-3 mb-3 xl:mb-5">
             <img src="/logo.png" alt="AnyCollect" className="w-12 h-12 xl:w-14 xl:h-14 object-contain rounded-xl bg-white p-1 shadow" />
             <div>
               <div className={`text-xl xl:text-2xl font-extrabold leading-tight ${dark ? 'text-white' : 'text-brand-navy'}`}>
@@ -96,9 +96,9 @@ export default function Login() {
           <h1 className={`text-2xl xl:text-3xl font-extrabold leading-snug mb-1 ${dark ? 'text-white' : 'text-brand-navy'}`}>
             Enterprise Intelligent<br />Core Banking System
           </h1>
-          <div className="w-14 h-1 bg-gradient-to-r from-brand-blue to-brand-green rounded-full mt-3 mb-6 xl:mb-8" />
+          <div className="w-14 h-1 bg-gradient-to-r from-brand-blue to-brand-green rounded-full mt-3 mb-3 xl:mb-5" />
 
-          <div className="grid grid-cols-1 gap-3 xl:gap-4">
+          <div className="grid grid-cols-1 gap-2 xl:gap-3">
             {FEATURES.map((f) => (
               <div key={f.title} className="flex items-start gap-3">
                 <div className={`w-9 h-9 xl:w-10 xl:h-10 rounded-lg flex items-center justify-center shrink-0 ${dark ? 'bg-white/10' : 'bg-white shadow-sm'}`}>
@@ -112,7 +112,7 @@ export default function Login() {
             ))}
           </div>
 
-        <div className={`relative z-10 flex flex-wrap gap-4 xl:gap-6 pt-5 xl:pt-8 mt-6 xl:mt-8 border-t ${dark ? 'border-white/10' : 'border-black/5'}`}>
+        <div className={`relative z-10 flex flex-wrap gap-4 xl:gap-6 pt-3 xl:pt-4 mt-3 xl:mt-4 border-t ${dark ? 'border-white/10' : 'border-black/5'}`}>
           {TRUST_BADGES.map((b) => (
             <div key={b.label} className="flex items-center gap-2">
               <b.icon size={16} className={dark ? 'text-brand-green' : 'text-brand-blue'} />
@@ -126,24 +126,24 @@ export default function Login() {
       </div>
 
       {/* Right panel — the actual login form */}
-      <div className="flex-1 relative z-10 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+      <div className="flex-1 relative z-10 flex items-center justify-center p-4 sm:p-6 ">
         <div
-          className={`w-full max-w-sm rounded-2xl shadow-2xl p-6 sm:p-8 backdrop-blur-xl my-auto ${
+          className={`w-full max-w-sm rounded-2xl shadow-2xl p-5 sm:p-7 backdrop-blur-xl my-auto ${
             dark ? 'bg-white/[0.06] border border-white/15' : 'bg-white/60 border border-white/80'
           }`}
         >
-          <div className="flex justify-center mb-4 sm:mb-5 lg:hidden">
+          <div className="flex justify-center mb-3 sm:mb-4 lg:hidden">
             <img src="/logo.png" alt="AnyCollect" className="w-12 h-12 sm:w-16 sm:h-16 object-contain" />
           </div>
 
           <h2 className={`text-lg sm:text-xl font-bold text-center ${dark ? 'text-white' : 'text-gray-800'}`}>Welcome Back</h2>
-          <p className={`text-xs text-center normal-case mt-1 mb-5 sm:mb-6 ${dark ? 'text-white/50' : 'text-gray-500'}`}>
+          <p className={`text-xs text-center normal-case mt-1 mb-4 sm:mb-5 ${dark ? 'text-white/50' : 'text-gray-500'}`}>
             Sign in to continue managing your institution securely.
           </p>
 
           {error && <div className="error-banner mb-4">{error}</div>}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             <div className="form-group">
               <label className={dark ? 'text-white/70' : ''}>Username</label>
               <input
@@ -186,7 +186,7 @@ export default function Login() {
             </button>
           </form>
 
-          <p className={`text-[11px] text-center normal-case mt-6 ${dark ? 'text-white/30' : 'text-gray-400'}`}>
+          <p className={`text-[10px] text-center normal-case mt-4 ${dark ? 'text-white/30' : 'text-gray-400'}`}>
             © {new Date().getFullYear()} AnyCollect. All rights reserved.
           </p>
         </div>
