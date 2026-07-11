@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -43,6 +44,7 @@ import LoanManagement from './pages/LoanManagement';
 import TellerManagement from './pages/TellerManagement';
 import ExecutiveDashboard from './pages/ExecutiveDashboard';
 import DocumentManagement from './pages/DocumentManagement';
+import TransactionReversal from './pages/TransactionReversal';
 import AccountingManagement from './pages/AccountingManagement';
 import FraudDetection from './pages/FraudDetection';
 import ComingSoon from './pages/ComingSoon';
@@ -89,6 +91,7 @@ function AppRoutes() {
         <Route path="teller" element={<TellerManagement />} />
         <Route path="executive-dashboard" element={<ExecutiveDashboard />} />
         <Route path="documents" element={<DocumentManagement />} />
+        <Route path="transaction-reversal" element={<TransactionReversal />} />
         <Route path="accounting" element={<AccountingManagement />} />
         <Route path="security/fraud-detection" element={<FraudDetection />} />
         <Route path="contracts" element={<ContractManagement />} />
@@ -130,9 +133,11 @@ function AppRoutes() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </LanguageProvider>
     </BrowserRouter>
   );
 }

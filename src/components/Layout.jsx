@@ -6,18 +6,20 @@ import {
   Percent, Layers, Hash, UserCog, UserPlus, TrendingUp, Wallet,
   FileText, CalendarCheck, ArrowDownCircle, ArrowUpCircle, CheckCircle2,
   BarChart3, LogIn, History, ScrollText, ShieldAlert, SlidersHorizontal,
-  ArrowLeftRight, Activity, Sun, Moon,
+  ArrowLeftRight, Activity, Sun, Moon, Undo2,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../api/client';
 import NotificationBell from './NotificationBell';
 import { PermissionAPI } from '../api/endpoints';
+import { useLanguage } from '../context/LanguageContext';
 
 // Sidebar structure follows the business hierarchy:
 // IMF -> Agences -> Utilisateurs -> Collecteurs -> Paramètres métier -> Clients -> Opérations -> Rapports -> Sécurité
 const NAV_GROUPS = [
   { to: '/', label: 'Tableau de bord', icon: LayoutDashboard, standalone: true, module: 'Dashboard' },
   { to: '/executive-dashboard', label: 'Executive Dashboard', icon: TrendingUp, standalone: true, module: 'ExecutiveDashboard' },
+  { to: '/change-password', label: 'Changer mon mot de passe', icon: KeyRound, standalone: true },
 
   {
     label: 'Administration', icon: ShieldCheck, base: '/admin', module: 'Users', items: [
@@ -75,6 +77,7 @@ const NAV_GROUPS = [
       { to: '/withdrawals', label: 'Retraits', icon: ArrowUpCircle },
       { to: '/transfers', label: 'Transferts', icon: ArrowLeftRight },
       { to: '/validations', label: 'Validation des opérations', icon: CheckCircle2 },
+      { to: '/transaction-reversal', label: 'Transaction Reversal', icon: Undo2 },
     ]
   },
   {
@@ -109,6 +112,7 @@ const NAV_GROUPS = [
 function SidebarItem({ group }) {
   const location = useLocation();
   const Icon = group.icon;
+  const { t } = useLanguage();
 
   if (group.standalone) {
     const isActive = location.pathname === group.to;
@@ -120,7 +124,7 @@ function SidebarItem({ group }) {
           ${isActive ? 'text-brand-blue' : 'text-gray-600 hover:bg-gray-50'}`}
       >
         <Icon size={16} className={isActive ? 'text-brand-blue' : 'text-gray-400'} />
-        {group.label}
+        {t(group.label)}
       </NavLink>
     );
   }
@@ -137,7 +141,7 @@ function SidebarItem({ group }) {
       >
         <span className="flex items-center gap-2">
           <Icon size={16} className={isGroupActive ? 'text-brand-blue' : 'text-gray-400'} />
-          {group.label}
+          {t(group.label)}
         </span>
         {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
       </button>
@@ -154,13 +158,14 @@ function SidebarItem({ group }) {
                   ${active ? 'bg-brand-blue text-white' : 'text-gray-500 hover:bg-gray-50'}`}
               >
                 <ItemIcon size={13} className={active ? 'text-white' : 'text-gray-400'} />
-                {item.label}
+                {t(item.label)}
               </NavLink>
             );
           })}
         </div>
       )}
     </div>
+
   );
 }
 
@@ -195,6 +200,7 @@ function Avatar({ name, photoUrl }) {
 export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { language, toggleLanguage, t } = useLanguage();
 
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('dsv_theme') === 'dark');
   const [showIdleWarning, setShowIdleWarning] = useState(false);
@@ -260,7 +266,7 @@ export default function Layout() {
         </nav>
 
         <div className="px-4 py-4 border-t border-gray-100">
-          <div className="text-[10px] text-gray-400 font-semibold mb-1">RÔLE:</div>
+          <div className="text-[10px] text-gray-400 font-semibold mb-1">{t('RÔLE')}:</div>
           <span className="inline-block border border-brand-blue text-brand-blue text-[11px] font-bold px-2.5 py-1 rounded">
             {user?.roleCode || '—'}
           </span>
@@ -282,17 +288,18 @@ export default function Layout() {
 
           <div className="ml-auto flex items-center gap-4">
             <NotificationBell />
-            <button className="text-white/80 hover:text-white" title={darkMode ? 'Mode clair' : 'Mode sombre'} onClick={() => setDarkMode(!darkMode)}>
+            <button className="text-white/80 hover:text-white" title={darkMode ? t('Mode clair') : t('Mode sombre')} onClick={() => setDarkMode(!darkMode)}>
               {darkMode ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <button className="text-white/80 hover:text-white" title="Paramètres">
+            <button className="text-white/80 hover:text-white" title={t('Paramètres')}>
               <Settings size={18} />
             </button>
-            <button className="text-white/80 hover:text-white" title="Langue">
+            <button className="text-white/80 hover:text-white flex items-center gap-1" title={t('Langue')} onClick={toggleLanguage}>
               <Flag size={18} />
+              <span className="text-[10px] font-bold">{language.toUpperCase()}</span>
             </button>
             <button className="bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded border border-white/30" onClick={handleLogout}>
-              Déconnexion
+              {t('Déconnexion')}
             </button>
             <Avatar name={user?.username} photoUrl={user?.photoUrl} />
           </div>
