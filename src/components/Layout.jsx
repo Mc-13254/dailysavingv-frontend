@@ -19,7 +19,6 @@ import { useLanguage } from '../context/LanguageContext';
 const NAV_GROUPS = [
   { to: '/', label: 'Tableau de bord', icon: LayoutDashboard, standalone: true, module: 'Dashboard' },
   { to: '/executive-dashboard', label: 'Executive Dashboard', icon: TrendingUp, standalone: true, module: 'ExecutiveDashboard' },
-  { to: '/change-password', label: 'Changer mon mot de passe', icon: KeyRound, standalone: true },
 
   {
     label: 'Administration', icon: ShieldCheck, base: '/admin', module: 'Users', items: [
@@ -105,6 +104,7 @@ const NAV_GROUPS = [
       { to: '/reports/audit', label: 'Audit & Login History', icon: ScrollText },
       { to: '/security/settings', label: 'Password Policy & API', icon: KeyRound },
       { to: '/security/system-health', label: 'System Health', icon: Activity },
+      { to: '/change-password', label: 'Changer mon mot de passe', icon: KeyRound },
     ]
   },
 ];
@@ -181,9 +181,13 @@ function NavPill({ icon, children }) {
 function Avatar({ name, photoUrl }) {
   const initials = (name || '?').slice(0, 2).toUpperCase();
   if (photoUrl) {
+    // Photo can be an absolute URL, a relative server path (/uploads/...), or
+    // a base64 data URI (stored directly at user-creation time) — only the
+    // relative-path case needs the API base URL prefixed.
+    const isAbsoluteOrData = photoUrl.startsWith('http') || photoUrl.startsWith('data:');
     return (
       <img
-        src={photoUrl.startsWith('http') ? photoUrl : `${API_BASE_URL}${photoUrl}`}
+        src={isAbsoluteOrData ? photoUrl : `${API_BASE_URL}${photoUrl}`}
         alt={name}
         className="w-8 h-8 rounded-full object-cover border border-white/40"
         onError={(e) => { e.target.style.display = 'none'; }}
