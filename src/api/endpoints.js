@@ -274,6 +274,7 @@ export const PermissionAPI = {
   all: () => client.get('/api/permissions'),
   forRole: (roleId) => client.get(`/api/permissions/role/${roleId}`),
   saveForRole: (roleId, permissions) => client.post(`/api/permissions/role/${roleId}`, { permissions }),
+  myModules: () => client.get('/api/permissions/my-modules'),
 };
 
 export const ContractTypeAPI = {

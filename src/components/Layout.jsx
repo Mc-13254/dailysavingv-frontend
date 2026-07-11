@@ -11,15 +11,16 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../api/client';
 import NotificationBell from './NotificationBell';
+import { PermissionAPI } from '../api/endpoints';
 
 // Sidebar structure follows the business hierarchy:
 // IMF -> Agences -> Utilisateurs -> Collecteurs -> Paramètres métier -> Clients -> Opérations -> Rapports -> Sécurité
 const NAV_GROUPS = [
-  { to: '/', label: 'Tableau de bord', icon: LayoutDashboard, standalone: true },
-  { to: '/executive-dashboard', label: 'Executive Dashboard', icon: TrendingUp, standalone: true },
+  { to: '/', label: 'Tableau de bord', icon: LayoutDashboard, standalone: true, module: 'Dashboard' },
+  { to: '/executive-dashboard', label: 'Executive Dashboard', icon: TrendingUp, standalone: true, module: 'ExecutiveDashboard' },
 
   {
-    label: 'Administration', icon: ShieldCheck, base: '/admin', items: [
+    label: 'Administration', icon: ShieldCheck, base: '/admin', module: 'Users', items: [
       { to: '/imf', label: 'IMF', icon: Landmark },
       { to: '/agencies', label: 'Agences', icon: Building2 },
       { to: '/users', label: 'Utilisateurs', icon: Users },
@@ -29,7 +30,7 @@ const NAV_GROUPS = [
     ]
   },
   {
-    label: 'Paramètres Métier', icon: SlidersHorizontal, base: '/settings-metier', items: [
+    label: 'Paramètres Métier', icon: SlidersHorizontal, base: '/settings-metier', module: 'Users', items: [
       { to: '/contract-types', label: 'Types de contrat', icon: FileSignature },
       { to: '/commissions', label: 'Types de commission', icon: Percent },
       { to: '/commission-ranges', label: 'Tranches de commission', icon: Layers },
@@ -37,36 +38,36 @@ const NAV_GROUPS = [
     ]
   },
   {
-    label: 'Gestion des Collecteurs', icon: UserCog, base: '/collectors', items: [
+    label: 'Gestion des Collecteurs', icon: UserCog, base: '/collectors', module: 'Collectors', items: [
       { to: '/collectors', label: 'Collecteurs', icon: UserCog },
       { to: '/collector-assignment', label: 'Affectation des collecteurs', icon: UserPlus },
       { to: '/collector-performance', label: 'Performance des collecteurs', icon: TrendingUp },
     ]
   },
   {
-    label: 'Gestion des Clients', icon: Users, base: '/clients-mgmt', items: [
+    label: 'Gestion des Clients', icon: Users, base: '/clients-mgmt', module: 'Clients', items: [
       { to: '/clients', label: 'Clients', icon: User },
       { to: '/contracts', label: 'Contrats des clients', icon: FileText },
       { to: '/accounts', label: 'Comptes', icon: Wallet },
     ]
   },
   {
-    label: 'Prêts', icon: Landmark, base: '/loans', items: [
+    label: 'Prêts', icon: Landmark, base: '/loans', module: 'Loans', items: [
       { to: '/loans', label: 'Loan Management', icon: Landmark },
     ]
   },
   {
-    label: 'Documents', icon: FileText, base: '/documents', items: [
+    label: 'Documents', icon: FileText, base: '/documents', module: 'Documents', items: [
       { to: '/documents', label: 'Document Management', icon: FileText },
     ]
   },
   {
-    label: 'Comptabilité', icon: BarChart3, base: '/accounting', items: [
+    label: 'Comptabilité', icon: BarChart3, base: '/accounting', module: 'Accounting', items: [
       { to: '/accounting', label: 'Accounting Management', icon: BarChart3 },
     ]
   },
   {
-    label: 'Opérations', icon: ArrowLeftRight, base: '/operations', items: [
+    label: 'Opérations', icon: ArrowLeftRight, base: '/operations', module: 'Operations', items: [
       { to: '/cash-session', label: 'Session de caisse', icon: Clock },
       { to: '/teller', label: 'Teller Management (Coffre)', icon: Landmark },
       { to: '/daily-collections', label: 'Collectes journalières', icon: CalendarCheck },
@@ -77,7 +78,7 @@ const NAV_GROUPS = [
     ]
   },
   {
-    label: 'Rapports', icon: BarChart3, base: '/reports', items: [
+    label: 'Rapports', icon: BarChart3, base: '/reports', module: 'Reports', items: [
       { to: '/reports/center', label: 'Report Center', icon: Home },
       { to: '/reports/transaction-history', label: 'Transaction History', icon: History },
       { to: '/reports/receipts', label: 'Receipts', icon: FileText },
@@ -94,7 +95,7 @@ const NAV_GROUPS = [
     ]
   },
   {
-    label: 'Sécurité', icon: ShieldAlert, base: '/security', items: [
+    label: 'Sécurité', icon: ShieldAlert, base: '/security', module: 'Security', items: [
       { to: '/security/sessions', label: 'Active Sessions', icon: LogIn },
       { to: '/security/fraud-detection', label: 'Fraud Detection', icon: ShieldAlert },
       { to: '/security/failed-logins', label: 'Failed Login Attempts', icon: ShieldAlert },
@@ -197,6 +198,16 @@ export default function Layout() {
 
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('dsv_theme') === 'dark');
   const [showIdleWarning, setShowIdleWarning] = useState(false);
+  const [myModules, setMyModules] = useState(null); // null = still loading -> show nothing yet to avoid a flash of unauthorized items
+
+  useEffect(() => {
+    PermissionAPI.myModules().then(({ data }) => setMyModules(data)).catch(() => setMyModules([]));
+  }, []);
+
+  // Standalone top-level links use their own `module`; grouped items are
+  // gated by the group's `module` as a whole (coarse but matches "show only
+  // what this role is allowed to use, hide the rest entirely").
+  const visibleNavGroups = myModules == null ? [] : NAV_GROUPS.filter((g) => !g.module || myModules.includes(g.module));
 
   const IDLE_WARNING_AFTER_MS = 10 * 60 * 1000; // 10 min of inactivity triggers the prompt
   const IDLE_TIMEOUT_REF = useRef(null);
@@ -243,7 +254,7 @@ export default function Layout() {
         </div>
 
         <nav className="flex-1 px-3 py-3 overflow-y-auto flex flex-col gap-1">
-          {NAV_GROUPS.map((group) => (
+          {visibleNavGroups.map((group) => (
             <SidebarItem key={group.label} group={group} />
           ))}
         </nav>
