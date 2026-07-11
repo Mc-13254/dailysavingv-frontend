@@ -16,14 +16,19 @@ export default function SystemHealth() {
   const [health, setHealth] = useState(null);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   const load = async () => {
     setLoading(true);
+    setAccessDenied(false);
     try {
       const [{ data: h }, { data: l }] = await Promise.all([SecurityAPI.systemHealth(), SecurityAPI.errorLogs({})]);
       setHealth(h);
       setLogs(l);
-    } catch { setLogs([]); }
+    } catch (err) {
+      if (err?.response?.status === 401 || err?.response?.status === 403) setAccessDenied(true);
+      setLogs([]);
+    }
     finally { setLoading(false); }
   };
 
@@ -52,6 +57,10 @@ export default function SystemHealth() {
         <button className="btn btn-outline" onClick={load}>Actualiser</button>
       </div>
 
+      {accessDenied ? (
+        <div className="error-banner">Accès refusé — cette page est réservée aux administrateurs.</div>
+      ) : (
+        <>
       {health && (
         <div className="kpi-grid mb-4">
           <div className="kpi-card"><div className="kpi-label">API</div><div className="kpi-value"><StatusPill ok={health.apiStatus === 'OK'} /></div></div>
@@ -68,6 +77,8 @@ export default function SystemHealth() {
       </div>
 
       <DataTable columns={columns} rows={logs} loading={loading} totalLabel={`ERREURS: ${logs.length}`} />
+        </>
+      )}
     </div>
   );
 }
